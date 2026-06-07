@@ -20,6 +20,31 @@ function fmtDate(t) {
   return new Date(t.seconds * 1000).toLocaleString('fr-FR', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
 }
 
+// Construit un lien mailto: avec sujet + corps préremplis pour envoyer le code
+function buildMailto(d) {
+  const subject = encodeURIComponent(`Le miroir intérieur — votre clé personnelle`);
+  const body = encodeURIComponent(
+`Bonjour ${d.prenom},
+
+Merci pour votre demande d'accès au Miroir intérieur.
+
+Voici votre clé personnelle :
+
+    ${d.codeAttribue}
+
+Pour entrer dans votre carnet :
+1. Rendez-vous sur https://lemiroirinterieur.fr/pages/carnet/entrer/
+2. Saisissez votre prénom (${d.prenom}) et la clé ci-dessus
+3. Vous arriverez sur votre carnet personnalisé pour le type ${d.typeDeclare}
+
+Le carnet vous propose chaque jour un travail doux et précis sur votre type. Trois manières d'y entrer selon votre énergie : Léger, Posé, ou « Aujourd'hui était lourd ». Une page « Un instant » vous permet aussi de noter ce qui se passe à toute heure.
+
+À très vite,
+Brahms`
+  );
+  return `mailto:${encodeURIComponent(d.contact)}?subject=${subject}&body=${body}`;
+}
+
 let currentFilter = 'en-attente';
 let allDemandes = [];
 
@@ -76,7 +101,15 @@ function renderList() {
         <div class="key-result">
           <div class="key-result__label">Clé attribuée</div>
           <div class="key-result__id">${esc(d.codeAttribue)}</div>
-          <button class="demande-card__actions button" data-act="copy-key" data-key="${esc(d.codeAttribue)}">📋 Copier la clé</button>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.8rem;">
+            <button class="demande-card__actions button" data-act="copy-key" data-key="${esc(d.codeAttribue)}">📋 Copier la clé</button>
+            ${d.contact && d.contact.includes('@') ? `
+              <a class="demande-card__actions button" style="text-decoration:none;display:inline-flex;align-items:center;"
+                 data-act="mail"
+                 href="${buildMailto(d)}"
+                 target="_blank" rel="noopener">📧 Envoyer le code par email</a>
+            ` : ''}
+          </div>
           <p class="key-result__hint">À transmettre à ${esc(d.prenom)} via ${esc(d.contact)}.</p>
         </div>
       ` : ''}
