@@ -109,34 +109,107 @@
     <h1 class="ck-title" id="hello-title">Bonjour…</h1>
     <p class="ck-subtitle" id="hello-sub">…</p>
 
-    <section class="ck-stats">
-      <div class="ck-stat">
-        <span class="ck-stat__n" id="stat-codes">·</span>
-        <span class="ck-stat__l">Lampes actives</span>
-      </div>
-      <div class="ck-stat">
-        <span class="ck-stat__n" id="stat-demandes">·</span>
-        <span class="ck-stat__l">Demandes en attente</span>
-      </div>
-      <div class="ck-stat">
-        <span class="ck-stat__n" id="stat-suggestions">·</span>
-        <span class="ck-stat__l">Suggestions nouvelles</span>
-      </div>
-      <div class="ck-stat">
-        <span class="ck-stat__n" id="stat-aujourdhui">·</span>
-        <span class="ck-stat__l">Notés aujourd'hui</span>
-      </div>
-    </section>
+    <!-- Deux blocs distincts : Voie / Miroir -->
+    <div class="dash-split">
 
-    <section class="ck-section">
-      <h2 class="ck-section__title">Action rapide</h2>
-      <div style="display: flex; gap: 0.7rem; flex-wrap: wrap;">
-        <a href="./creer-cle.html" class="ck-btn ck-btn--gold">✦ Créer une clé</a>
-        <a href="./demandes.html" class="ck-btn">📨 Voir les demandes</a>
-        <a href="./suggestions.html" class="ck-btn">💬 Lire les suggestions</a>
-        <a href="./souffle.html" class="ck-btn">🌬 Le souffle collectif</a>
+      <!-- 📿 LA VOIE DU DEDANS -->
+      <div class="dash-block dash-block--voie">
+        <h2 class="dash-block__title"><span class="dash-block__ico">📿</span> La voie du dedans <em>(soufi)</em></h2>
+        <div class="dash-stats-row">
+          <div class="dash-stat"><span class="dash-stat__n" id="stat-codes">·</span><span class="dash-stat__l">Clés actives</span></div>
+          <div class="dash-stat"><span class="dash-stat__n" id="stat-demandes">·</span><span class="dash-stat__l">Demandes</span></div>
+          <div class="dash-stat"><span class="dash-stat__n" id="stat-suggestions">·</span><span class="dash-stat__l">Suggestions</span></div>
+          <div class="dash-stat"><span class="dash-stat__n" id="stat-aujourdhui">·</span><span class="dash-stat__l">Notés aujourd'hui</span></div>
+        </div>
+        <div class="dash-actions">
+          <a href="./creer-cle.html" class="ck-btn ck-btn--gold">✦ Créer une clé</a>
+          <a href="./demandes.html" class="ck-btn">📨 Demandes</a>
+          <a href="./codes.html" class="ck-btn">🔑 Toutes les clés</a>
+          <a href="./souffle.html" class="ck-btn">🌬 Souffle</a>
+        </div>
       </div>
-    </section>
+
+      <!-- 🪞 LE MIROIR INTÉRIEUR -->
+      <div class="dash-block dash-block--miroir">
+        <h2 class="dash-block__title"><span class="dash-block__ico">🪞</span> Le miroir intérieur <em>(ennéagramme)</em></h2>
+        <div class="dash-stats-row">
+          <div class="dash-stat"><span class="dash-stat__n" id="stat-mi-codes">·</span><span class="dash-stat__l">Clés actives</span></div>
+          <div class="dash-stat"><span class="dash-stat__n" id="stat-mi-demandes">·</span><span class="dash-stat__l">Demandes</span></div>
+          <div class="dash-stat"><span class="dash-stat__n" id="stat-mi-aujourdhui">·</span><span class="dash-stat__l">Notés aujourd'hui</span></div>
+          <div class="dash-stat"><span class="dash-stat__n" id="stat-mi-types">·</span><span class="dash-stat__l">Types représentés</span></div>
+        </div>
+        <div class="dash-actions">
+          <a href="./miroir-cles.html" class="ck-btn ck-btn--gold">✦ Créer une clé miroir</a>
+          <a href="./miroir-demandes.html" class="ck-btn">📨 Demandes miroir</a>
+          <a href="./miroir-cles.html" class="ck-btn">🪞 Toutes les clés miroir</a>
+        </div>
+      </div>
+
+    </div>
+
+    <style>
+      .dash-split {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.4rem;
+        margin: 0 0 var(--space-xl);
+      }
+      @media (max-width: 900px) { .dash-split { grid-template-columns: 1fr; } }
+      .dash-block {
+        padding: 1.3rem 1.4rem 1.4rem;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: linear-gradient(170deg, #FFFDF4, var(--paper));
+      }
+      .dash-block--voie   { border-top: 4px solid #B8860B; }
+      .dash-block--miroir { border-top: 4px solid var(--gold); }
+      .dash-block__title {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 1.35rem;
+        font-weight: 500;
+        margin: 0 0 1rem;
+        color: var(--ink-title);
+        display: flex; align-items: center; gap: 0.5rem;
+      }
+      .dash-block__title em {
+        color: var(--ink-mute); font-style: italic;
+        font-size: 0.82rem; font-weight: 400;
+        margin-left: 0.3rem;
+      }
+      .dash-block__ico { font-size: 1.6rem; }
+      .dash-stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.55rem;
+        margin-bottom: 1rem;
+      }
+      @media (max-width: 520px) {
+        .dash-stats-row { grid-template-columns: repeat(2, 1fr); }
+      }
+      .dash-stat {
+        background: var(--paper); border: 1px solid var(--line);
+        border-radius: 10px; padding: 0.7rem 0.5rem;
+        text-align: center;
+      }
+      .dash-stat__n {
+        display: block;
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 1.7rem; color: var(--gold); font-weight: 500;
+        line-height: 1;
+      }
+      .dash-stat__l {
+        display: block;
+        font-size: 0.78rem; letter-spacing: 0.06em;
+        color: var(--ink-mute); margin-top: 0.3rem;
+      }
+      .dash-actions {
+        display: flex; flex-wrap: wrap; gap: 0.5rem;
+      }
+      .dash-actions .ck-btn {
+        font-size: 0.92rem !important; padding: 0.55rem 1rem !important;
+      }
+    </style>
+
 
     <section class="ck-section">
       <h2 class="ck-section__title">Le mur des lampes</h2>
@@ -224,12 +297,36 @@
       document.getElementById('hello-sub').textContent = s.sub;
 
       try {
-        // chargement
-        const [codesSnap, demandesSnap, suggestionsSnap] = await Promise.all([
+        // chargement Voie + Miroir en parallèle
+        const [
+          codesSnap, demandesSnap, suggestionsSnap,
+          miCodesSnap, miDemandesSnap
+        ] = await Promise.all([
           getDocs(collection(db, 'codes')),
           getDocs(query(collection(db, 'demandes'), where('statut', '==', 'en-attente'))),
-          getDocs(query(collection(db, 'suggestions'), where('statut', '==', 'neuve')))
+          getDocs(query(collection(db, 'suggestions'), where('statut', '==', 'neuve'))),
+          getDocs(collection(db, 'codes-type')),
+          getDocs(query(collection(db, 'demandes-type'), where('statut', '==', 'en-attente')))
         ]);
+
+        // === Miroir intérieur — stats ===
+        const miCodes = [];
+        miCodesSnap.forEach(d => miCodes.push({ id: d.id, ...d.data() }));
+        const miActifs = miCodes.filter(c => c.actif !== false);
+        const today2 = dateKey(0);
+        let miNotesAujourdhui = 0;
+        for (const c of miActifs) {
+          try {
+            const j = await getDocs(collection(db, 'carnets-type', c.id, 'jours'));
+            j.forEach(jd => { if (jd.id === today2) miNotesAujourdhui++; });
+          } catch {}
+        }
+        const typesSet = new Set(miActifs.map(c => c.type).filter(Boolean));
+        const typesRepresentes = typesSet.size;
+        document.getElementById('stat-mi-codes').textContent      = miActifs.length;
+        document.getElementById('stat-mi-demandes').textContent   = miDemandesSnap.size;
+        document.getElementById('stat-mi-aujourdhui').textContent = miNotesAujourdhui;
+        document.getElementById('stat-mi-types').textContent      = `${typesRepresentes}/9`;
         const codes = [];
         codesSnap.forEach(d => codes.push({ id: d.id, ...d.data() }));
         const actifs = codes.filter(c => c.actif !== false);
