@@ -109,6 +109,97 @@
     <h1 class="ck-title" id="hello-title">Bonjour…</h1>
     <p class="ck-subtitle" id="hello-sub">…</p>
 
+    <!-- 🔑 Mes accès personnels — pour ne pas oublier mes codes -->
+    <section class="my-creds">
+      <h2 class="my-creds__title">🔑 Mes accès personnels</h2>
+      <p class="my-creds__sub">Vos identifiants pour tester ou utiliser les carnets vous-même.</p>
+      <div class="my-creds__grid">
+        <div class="my-creds__card my-creds__card--voie">
+          <h3>📿 La voie du dedans</h3>
+          <div id="my-voie">— chargement —</div>
+        </div>
+        <div class="my-creds__card my-creds__card--miroir">
+          <h3>🪞 Le miroir intérieur</h3>
+          <div id="my-miroir">— chargement —</div>
+        </div>
+      </div>
+    </section>
+
+    <style>
+      .my-creds {
+        margin: 0 0 var(--space-xl);
+        padding: 1.3rem 1.5rem;
+        background: linear-gradient(170deg, #FFF8DC, #FFFDF4);
+        border: 1px solid var(--gold);
+        border-radius: 18px;
+        box-shadow: 0 8px 24px rgba(192, 160, 80, 0.12);
+      }
+      .my-creds__title {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 1.3rem; font-weight: 500;
+        color: var(--ink-title); margin: 0 0 0.3rem;
+      }
+      .my-creds__sub {
+        font-family: 'Cormorant Garamond', serif; font-style: italic;
+        color: var(--ink-soft); margin: 0 0 1.1rem; font-size: 0.96rem;
+      }
+      .my-creds__grid {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+      }
+      @media (max-width: 700px) {
+        .my-creds__grid { grid-template-columns: 1fr; }
+      }
+      .my-creds__card {
+        background: #FFFDF8; border: 1px solid var(--line);
+        border-radius: 12px; padding: 1rem 1.1rem;
+      }
+      .my-creds__card--voie   { border-top: 3px solid #B8860B; }
+      .my-creds__card--miroir { border-top: 3px solid var(--gold); }
+      .my-creds__card h3 {
+        font-family: 'Cormorant Garamond', serif; font-size: 1.1rem;
+        font-weight: 500; color: var(--ink-title); margin: 0 0 .7rem;
+      }
+      .cred-line {
+        display: flex; justify-content: space-between; align-items: center;
+        margin: 0.4rem 0; gap: 0.5rem;
+      }
+      .cred-label {
+        font-family: var(--font-sans); font-size: 0.78rem;
+        letter-spacing: 0.08em; text-transform: uppercase;
+        color: var(--ink-mute);
+      }
+      .cred-value {
+        font-family: 'Courier New', monospace; font-size: 0.95rem;
+        color: var(--ink-title); user-select: all;
+        background: rgba(192, 160, 80, 0.08); padding: 0.3rem 0.6rem;
+        border-radius: 6px; word-break: break-all;
+        flex: 1; text-align: right;
+      }
+      .cred-value--prenom { font-family: 'Cormorant Garamond', serif; font-size: 1.05rem; }
+      .cred-copy {
+        background: var(--gold); color: #FFFDF8; border: none;
+        padding: 0.35rem 0.7rem; border-radius: 999px;
+        font-size: 0.8rem; cursor: pointer;
+        flex-shrink: 0;
+      }
+      .cred-copy:hover { background: #B88820; }
+      .cred-empty {
+        font-family: 'Cormorant Garamond', serif; font-style: italic;
+        color: var(--ink-mute); font-size: 0.95rem;
+      }
+      .cred-empty a {
+        color: var(--gold); font-weight: 600; text-decoration: none;
+      }
+      .cred-multi {
+        margin-top: 0.6rem; padding-top: 0.5rem;
+        border-top: 1px dashed var(--line);
+      }
+      .cred-multi__hint {
+        font-size: 0.78rem; color: var(--ink-mute);
+        font-style: italic; margin-top: 0.3rem;
+      }
+    </style>
+
     <!-- Deux blocs distincts : Voie / Miroir -->
     <div class="dash-split">
 
@@ -296,6 +387,27 @@
       document.getElementById('hello-title').innerHTML = `${s.titre}, <em style="color:var(--gold); font-style:italic;">${esc(prenom)}</em>.`;
       document.getElementById('hello-sub').textContent = s.sub;
 
+      // === Charger MES accès personnels (Brahms) ===
+      const MY_PRENOM_NORM = 'brahms';
+      function normPrenom(s) {
+        return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+      }
+      function escAttr(s) { return String(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+      function attachCopy(scope) {
+        scope.querySelectorAll('.cred-copy').forEach(b => {
+          b.addEventListener('click', async () => {
+            try {
+              await navigator.clipboard.writeText(b.dataset.value);
+              const orig = b.textContent;
+              b.textContent = '✓';
+              setTimeout(() => b.textContent = orig, 1500);
+            } catch {
+              alert('Sélectionnez la valeur pour la copier.');
+            }
+          });
+        });
+      }
+
       try {
         // chargement Voie + Miroir en parallèle
         const [
@@ -308,6 +420,70 @@
           getDocs(collection(db, 'codes-type')),
           getDocs(query(collection(db, 'demandes-type'), where('statut', '==', 'en-attente')))
         ]);
+
+        // === MES ACCÈS — La voie du dedans ===
+        const myVoie = [];
+        codesSnap.forEach(d => {
+          const data = d.data();
+          if (normPrenom(data.prenomNorm || data.prenom) === MY_PRENOM_NORM && data.actif !== false) {
+            myVoie.push({ id: d.id, ...data });
+          }
+        });
+        const voieEl = document.getElementById('my-voie');
+        if (!myVoie.length) {
+          voieEl.innerHTML = `<p class="cred-empty">Aucun accès Brahms encore — <a href="./creer-cle.html">en créer un</a>.</p>`;
+        } else {
+          voieEl.innerHTML = myVoie.map((c, i) => `
+            ${i > 0 ? '<div class="cred-multi"></div>' : ''}
+            <div class="cred-line">
+              <span class="cred-label">Prénom</span>
+              <span class="cred-value cred-value--prenom">${esc(c.prenom)}</span>
+              <button class="cred-copy" data-value="${escAttr(c.prenom)}">📋</button>
+            </div>
+            <div class="cred-line">
+              <span class="cred-label">Mot-graine</span>
+              <span class="cred-value">${esc(c.motGraine || '—')}</span>
+              <button class="cred-copy" data-value="${escAttr(c.motGraine || '')}">📋</button>
+            </div>
+            <div class="cred-line">
+              <span class="cred-label">Login</span>
+              <a href="https://lavoiedudedans.fr/pages/carnet/entrer/" target="_blank" rel="noopener" style="color:var(--gold);text-decoration:none;font-style:italic;font-family:'Cormorant Garamond',serif;">→ Aller au carnet</a>
+            </div>
+          `).join('');
+          attachCopy(voieEl);
+        }
+
+        // === MES ACCÈS — Le miroir intérieur ===
+        const myMiroir = [];
+        miCodesSnap.forEach(d => {
+          const data = d.data();
+          if (normPrenom(data.prenomNorm || data.prenom) === MY_PRENOM_NORM && data.actif !== false) {
+            myMiroir.push({ id: d.id, ...data });
+          }
+        });
+        const miroirEl = document.getElementById('my-miroir');
+        if (!myMiroir.length) {
+          miroirEl.innerHTML = `<p class="cred-empty">Aucun accès Brahms encore — <a href="./miroir-cles.html">en créer un</a>.</p>`;
+        } else {
+          miroirEl.innerHTML = myMiroir.map((c, i) => `
+            ${i > 0 ? `<div class="cred-multi"><p class="cred-multi__hint">Type ${c.type || '?'} :</p></div>` : ''}
+            <div class="cred-line">
+              <span class="cred-label">Prénom</span>
+              <span class="cred-value cred-value--prenom">${esc(c.prenom)}${c.type ? ` <em style="color:var(--gold);font-style:italic">(T${c.type})</em>` : ''}</span>
+              <button class="cred-copy" data-value="${escAttr(c.prenom)}">📋</button>
+            </div>
+            <div class="cred-line">
+              <span class="cred-label">Code</span>
+              <span class="cred-value">${esc(c.id)}</span>
+              <button class="cred-copy" data-value="${escAttr(c.id)}">📋</button>
+            </div>
+            <div class="cred-line">
+              <span class="cred-label">Login</span>
+              <a href="https://lemiroirinterieur.fr/pages/carnet/entrer/" target="_blank" rel="noopener" style="color:var(--gold);text-decoration:none;font-style:italic;font-family:'Cormorant Garamond',serif;">→ Aller au carnet</a>
+            </div>
+          `).join('');
+          attachCopy(miroirEl);
+        }
 
         // === Miroir intérieur — stats ===
         const miCodes = [];
