@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>Cockpit · La voie du dedans</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Amiri:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/cockpit.css" />
+</head>
+<body>
+
+  <main class="ck-login">
+    <div class="ck-login__box">
+      <div class="ck-login__ar" lang="ar" dir="rtl">المِصْبَاح</div>
+      <h1 class="ck-login__title">Cockpit</h1>
+      <p class="ck-login__sub">l'intendance de <em>La voie du dedans</em></p>
+
+      <button id="login-btn" class="ck-login__btn">
+        Continuer avec Google
+      </button>
+
+      <p class="ck-login__note">
+        Réservé à l'intendant du carnet.<br>
+        Si vous êtes arrivé ici par hasard, retournez sur <a href="https://lavoiedudedans.fr">le site</a>.
+      </p>
+
+      <p id="login-error" class="ck-error" style="display:none;"></p>
+    </div>
+  </main>
+
+  <script type="module">
+    import { auth, googleProvider, ALLOWED_EMAILS } from './assets/js/firebase-init.js';
+    import { signInWithPopup, onAuthStateChanged }
+      from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+    const btn = document.getElementById('login-btn');
+    const errorEl = document.getElementById('login-error');
+
+    // si déjà connecté ET autorisé, on file direct
+    onAuthStateChanged(auth, (user) => {
+      if (user && ALLOWED_EMAILS.includes(user.email)) {
+        window.location.href = './tableau-de-bord.html';
+      }
+    });
+
+    btn.addEventListener('click', async () => {
+      errorEl.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = 'Connexion…';
+      try {
+        const result = await signInWithPopup(auth, googleProvider);
+        const user = result.user;
+        if (!ALLOWED_EMAILS.includes(user.email)) {
+          errorEl.textContent = `Cet email (${user.email}) n'est pas autorisé. Le cockpit est réservé.`;
+          errorEl.style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = 'Continuer avec Google';
+          return;
+        }
+        // connecté + autorisé
+        window.location.href = './tableau-de-bord.html';
+      } catch (e) {
+        console.error(e);
+        if (e.code === 'auth/popup-closed-by-user') {
+          // pas grave, juste fermer
+          btn.disabled = false;
+          btn.textContent = 'Continuer avec Google';
+        } else {
+          errorEl.textContent = 'Une difficulté à se connecter. Réessayez dans un instant.';
+          errorEl.style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = 'Continuer avec Google';
+        }
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>Créer une clé · Cockpit</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Amiri:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/cockpit.css" />
+</head>
+<body>
+
+  <header class="ck-head">
+    <div class="ck-head__inner">
+      <div class="ck-head__brand">Cockpit · <em>La voie du dedans</em></div>
+      <nav class="ck-head__nav">
+        <a href="./tableau-de-bord.html">Tableau</a>
+        <a href="./creer-cle.html" class="is-active">Créer une clé</a>
+        <a href="#" id="logout-link">Sortir</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="ck-main">
+    <h1 class="ck-title">Tendre une lampe</h1>
+    <p class="ck-subtitle">créer une clé pour quelqu'un</p>
+
+    <section class="ck-section" id="step-form">
+      <form id="creer-form" class="ck-form" novalidate>
+        <div class="ck-field">
+          <label for="prenom">Prénom de la personne</label>
+          <input type="text" id="prenom" name="prenom" required autocomplete="off" />
+          <span class="ck-field__hint">Tel qu'il ou elle voudra se voir nommer.</span>
+        </div>
+
+        <div class="ck-field">
+          <label for="motGraine">Mot-graine confié</label>
+          <input type="text" id="motGraine" name="motGraine" required placeholder="ex. fitra, hilm, sabr…" autocapitalize="none" autocorrect="off" spellcheck="false" />
+          <span class="ck-field__hint">Choisissez selon ce que cette personne porte ou doit travailler. Sans accent, en minuscules.</span>
+
+          <div class="ck-palette" id="palette" hidden></div>
+        </div>
+
+        <div class="ck-field">
+          <label for="langue">Langue</label>
+          <select id="langue" name="langue">
+            <option value="fr" selected>Français</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+
+        <div class="ck-field">
+          <label for="note">Note privée <span style="text-transform:none; letter-spacing:0; color:var(--ink-mute); font-style:italic;">(facultatif — jamais lue par l'utilisateur)</span></label>
+          <textarea id="note" name="note" rows="3" placeholder="ex. Vient via un ami, travaille la colère, je lui ai donné hilm."></textarea>
+        </div>
+
+        <button type="submit" class="ck-btn ck-btn--gold" id="submit-btn">
+          ✦ Créer la clé
+        </button>
+        <p class="ck-error" id="form-error" style="display:none;"></p>
+      </form>
+    </section>
+
+    <section class="ck-section" id="step-success" hidden>
+      <h2 class="ck-section__title">La clé est créée</h2>
+      <p style="margin: 0 0 var(--space-md);">
+        Vous pouvez maintenant la transmettre à <strong id="success-prenom">…</strong> par le canal de votre choix. Voici un brouillon de message à copier :
+      </p>
+
+      <div style="background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: var(--space-md); font-family: var(--font-display); font-size: 1rem; color: var(--ink-soft); line-height: 1.6; white-space: pre-wrap;" id="brouillon-msg">…</div>
+
+      <div style="margin-top: var(--space-md); display: flex; gap: 0.8rem; flex-wrap: wrap;">
+        <button type="button" class="ck-btn ck-btn--gold" id="copy-msg">Copier le message</button>
+        <button type="button" class="ck-btn" id="create-another">Créer une autre clé</button>
+        <a href="./tableau-de-bord.html" class="ck-btn ck-btn--ghost">Retour au tableau</a>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { db } from './assets/js/firebase-init.js';
+    import { requireAdmin, logout } from './assets/js/auth-guard.js';
+    import { addDoc, collection, query, where, getDocs, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    document.getElementById('logout-link').addEventListener('click', (e) => {
+      e.preventDefault(); logout();
+    });
+
+    // — palette de mots-graines suggérés —
+    const PALETTE = [
+      ['sabr',     'patience'],
+      ['shukr',    'gratitude'],
+      ['hilm',     'mansuétude'],
+      ['rifq',     'douceur'],
+      ['huduur',   'présence'],
+      ['muraqaba', 'observation'],
+      ['adab',     'belle manière'],
+      ['fitra',    'nature originelle'],
+      ['sakina',   'quiétude'],
+      ['nur',      'lumière'],
+      ['sidq',     'véracité'],
+      ['ikhlas',   'sincérité'],
+      ['uns',      'intimité'],
+      ['huda',     'guidance'],
+      ['tawakkul', 'remise'],
+      ['rida',     'acquiescement'],
+      ['khushuu',  'humilité'],
+      ['samt',     'silence'],
+      ['dhikr',    'rappel'],
+      ['niyya',    'intention'],
+      ['tawba',    'retour'],
+      ['zuhd',     'détachement'],
+      ['faqr',     'simplicité'],
+      ['shawq',    'désir ardent']
+    ];
+
+    const paletteEl = document.getElementById('palette');
+    paletteEl.innerHTML = PALETTE.map(([m, gloss]) =>
+      `<span class="ck-palette__mot" data-mot="${m}">${m} <em>· ${gloss}</em></span>`
+    ).join('');
+    paletteEl.hidden = false;
+    paletteEl.addEventListener('click', (e) => {
+      const sp = e.target.closest('.ck-palette__mot');
+      if (sp) document.getElementById('motGraine').value = sp.dataset.mot;
+    });
+
+    // — soumission —
+    function normalize(s) {
+      return String(s || '').trim().toLowerCase()
+        .normalize('NFD').replace(/[̀-ͯ]/g, '');
+    }
+
+    const form = document.getElementById('creer-form');
+    const errorEl = document.getElementById('form-error');
+    const btn = document.getElementById('submit-btn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorEl.style.display = 'none';
+
+      const prenomRaw = form.prenom.value.trim();
+      const motRaw    = form.motGraine.value.trim();
+      const langue    = form.langue.value;
+      const note      = form.note.value.trim();
+
+      if (!prenomRaw || !motRaw) {
+        errorEl.textContent = 'Le prénom et le mot-graine sont nécessaires.';
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      const prenomNorm = normalize(prenomRaw);
+      const motGraine  = normalize(motRaw);
+
+      btn.disabled = true;
+      btn.textContent = 'Création…';
+
+      try {
+        // vérifie qu'aucune clé identique n'existe déjà
+        const q = query(collection(db, 'codes'),
+                        where('prenomNorm', '==', prenomNorm),
+                        where('motGraine',  '==', motGraine));
+        const existing = await getDocs(q);
+        if (!existing.empty) {
+          errorEl.textContent = `Une clé existe déjà pour « ${prenomRaw} + ${motGraine} ». Choisissez un autre mot-graine.`;
+          errorEl.style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = '✦ Créer la clé';
+          return;
+        }
+
+        await addDoc(collection(db, 'codes'), {
+          prenom: prenomRaw,
+          prenomNorm,
+          motGraine,
+          langue,
+          actif: true,
+          note: note || null,
+          creeLe: serverTimestamp()
+        });
+
+        // affichage du succès
+        document.getElementById('success-prenom').textContent = prenomRaw;
+        document.getElementById('brouillon-msg').textContent =
+          `Bonjour ${prenomRaw},\n\n` +
+          `Votre carnet vous attend. Voici votre mot-graine : ${motGraine}.\n\n` +
+          `Pour entrer, allez sur :\n` +
+          `https://lavoiedudedans.fr/pages/carnet/\n\n` +
+          `et tapez :\n` +
+          `   Prénom        ${prenomRaw}\n` +
+          `   Mot-graine    ${motGraine}\n\n` +
+          `Que ce mot vous accompagne.\n\n` +
+          `— La voie du dedans`;
+
+        document.getElementById('step-form').hidden = true;
+        document.getElementById('step-success').hidden = false;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch (e) {
+        console.error(e);
+        errorEl.textContent = 'Une difficulté à créer la clé. Réessayez dans un instant.';
+        errorEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = '✦ Créer la clé';
+      }
+    });
+
+    document.getElementById('copy-msg').addEventListener('click', async (e) => {
+      const txt = document.getElementById('brouillon-msg').textContent;
+      try {
+        await navigator.clipboard.writeText(txt);
+        e.target.textContent = 'Copié ✓';
+        setTimeout(() => e.target.textContent = 'Copier le message', 2200);
+      } catch {
+        window.prompt('Copiez ce message :', txt);
+      }
+    });
+
+    document.getElementById('create-another').addEventListener('click', () => {
+      window.location.reload();
+    });
+
+    requireAdmin(() => {});
+  </script>
+</body>
+</html>

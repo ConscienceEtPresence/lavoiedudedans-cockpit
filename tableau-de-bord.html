@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>Tableau de bord · Cockpit</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Amiri:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/cockpit.css" />
+</head>
+<body>
+
+  <header class="ck-head">
+    <div class="ck-head__inner">
+      <div class="ck-head__brand">Cockpit · <em>La voie du dedans</em></div>
+      <nav class="ck-head__nav">
+        <a href="./tableau-de-bord.html" class="is-active">Tableau</a>
+        <a href="./creer-cle.html">Créer une clé</a>
+        <a href="#" id="logout-link">Sortir</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="ck-main">
+    <h1 class="ck-title">Tableau de bord</h1>
+    <p class="ck-subtitle" id="hello">Bonjour…</p>
+
+    <section class="ck-stats">
+      <div class="ck-stat">
+        <span class="ck-stat__n" id="stat-codes">·</span>
+        <span class="ck-stat__l">Clés actives</span>
+      </div>
+      <div class="ck-stat">
+        <span class="ck-stat__n" id="stat-demandes">·</span>
+        <span class="ck-stat__l">Demandes en attente</span>
+      </div>
+      <div class="ck-stat">
+        <span class="ck-stat__n" id="stat-suggestions">·</span>
+        <span class="ck-stat__l">Suggestions reçues</span>
+      </div>
+    </section>
+
+    <section class="ck-section">
+      <h2 class="ck-section__title">Action rapide</h2>
+      <p style="margin: 0 0 var(--space-md); color: var(--ink-soft);">
+        Tendre une lampe à quelqu'un — créer une clé pour un nouveau cheminant.
+      </p>
+      <a href="./creer-cle.html" class="ck-btn ck-btn--gold">
+        ✦ Créer une clé
+      </a>
+    </section>
+
+    <section class="ck-section">
+      <h2 class="ck-section__title">Vie du carnet (à venir)</h2>
+      <p style="margin: 0; color: var(--ink-mute); font-style: italic;">
+        Bientôt : la liste des clés, les demandes en attente, les suggestions reçues, et le souffle collectif.
+      </p>
+    </section>
+  </main>
+
+  <script type="module">
+    import { db } from './assets/js/firebase-init.js';
+    import { requireAdmin, logout } from './assets/js/auth-guard.js';
+    import { collection, getDocs, query, where }
+      from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    document.getElementById('logout-link').addEventListener('click', (e) => {
+      e.preventDefault(); logout();
+    });
+
+    requireAdmin(async (user) => {
+      const prenom = user.displayName?.split(' ')[0] || 'Brahms';
+      document.getElementById('hello').innerHTML = `Bonjour, <em>${prenom}</em>.`;
+
+      // chargement des chiffres
+      try {
+        const [codesSnap, demandesSnap, suggestionsSnap] = await Promise.all([
+          getDocs(query(collection(db, 'codes'), where('actif', '==', true))),
+          getDocs(query(collection(db, 'demandes'), where('statut', '==', 'en-attente'))),
+          getDocs(collection(db, 'suggestions'))
+        ]);
+        document.getElementById('stat-codes').textContent       = codesSnap.size;
+        document.getElementById('stat-demandes').textContent    = demandesSnap.size;
+        document.getElementById('stat-suggestions').textContent = suggestionsSnap.size;
+      } catch (e) {
+        console.error(e);
+      }
+    });
+  </script>
+</body>
+</html>
