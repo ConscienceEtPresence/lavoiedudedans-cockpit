@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>Miroir · Demandes · Cockpit</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/cockpit.css" />
+
+  <style>
+    .demande-card {
+      background: var(--paper); border:1px solid var(--line); border-radius:14px;
+      padding: 1.2rem 1.3rem; margin-bottom: 1rem;
+      position: relative;
+    }
+    .demande-card.en-attente { border-color: var(--gold-soft); background: linear-gradient(170deg, #FFFDF4, var(--paper)); }
+    .demande-card.accepte    { opacity: .65; }
+    .demande-card.refuse     { opacity: .5; }
+    .demande-card__head {
+      display: flex; justify-content: space-between; align-items: baseline; gap: 1rem;
+      flex-wrap: wrap; margin-bottom: .5rem;
+    }
+    .demande-card__nom {
+      font-family: 'Cormorant Garamond', serif; font-size: 1.3rem;
+      color: var(--ink-title); font-weight: 500;
+    }
+    .demande-card__type {
+      display: inline-block; padding: .25rem .7rem;
+      background: var(--gold); color: #FFFDF8;
+      border-radius: 999px; font-weight: 600; font-size: .9rem;
+    }
+    .demande-card__date {
+      font-style: italic; font-size: .85rem; color: var(--ink-mute);
+    }
+    .demande-card__contact {
+      font-family: 'Courier New', monospace; font-size: .92rem;
+      color: var(--ink-soft); margin: .3rem 0 .8rem; user-select: all;
+    }
+    .demande-card__message {
+      font-family: 'Cormorant Garamond', serif; font-style: italic;
+      color: var(--ink-soft); line-height: 1.55; margin: .6rem 0;
+      padding-left: .9rem; border-left: 2px solid var(--gold-soft);
+    }
+    .demande-card__statut {
+      display: inline-block; padding: .2rem .7rem; border-radius: 999px;
+      font-size: .78rem; letter-spacing: .08em; text-transform: uppercase;
+      font-weight: 600;
+    }
+    .demande-card__statut.en-attente { background: rgba(192,160,80,.15); color: #B88820; }
+    .demande-card__statut.accepte    { background: rgba(134,239,172,.18); color: #65a060; }
+    .demande-card__statut.refuse     { background: rgba(253,164,175,.15); color: #b8506a; }
+    .demande-card__actions {
+      display: flex; gap: .5rem; margin-top: 1rem; flex-wrap: wrap;
+    }
+    .demande-card__actions button {
+      padding: .55rem 1.1rem; border-radius: 999px; cursor: pointer;
+      font-family: inherit; font-size: .9rem; border: 1px solid var(--line);
+      background: transparent; color: var(--ink-soft);
+      transition: all .2s;
+    }
+    .demande-card__actions button:hover { border-color: var(--gold); color: var(--gold); }
+    .demande-card__actions button.primary {
+      background: var(--gold); color: #FFFDF8; border-color: var(--gold);
+    }
+    .demande-card__actions button.primary:hover { background: #B88820; color: #FFFDF8; }
+
+    .key-result {
+      margin-top: 1rem; padding: 1rem;
+      background: linear-gradient(170deg, #FFF8DC, #FFFDF4);
+      border: 1.5px solid var(--gold); border-radius: 12px;
+    }
+    .key-result__label { color: var(--gold); font-size: .78rem;
+      letter-spacing: .14em; text-transform: uppercase; font-weight: 600; }
+    .key-result__id {
+      font-family: 'Courier New', monospace; font-size: 1rem;
+      color: var(--ink-title); user-select: all; margin: .5rem 0;
+      word-break: break-all;
+    }
+    .key-result__hint { font-style: italic; color: var(--ink-mute); font-size: .88rem; margin-top: .4rem; }
+
+    .filter-tabs { display: flex; gap: .5rem; margin: 1rem 0; flex-wrap: wrap; }
+    .filter-tab {
+      padding: .5rem 1.1rem; border-radius: 999px; cursor: pointer;
+      border: 1px solid var(--line); background: transparent; color: var(--ink-soft);
+      font-family: inherit; font-size: .92rem; transition: all .2s;
+    }
+    .filter-tab.is-active { background: var(--gold); color: #FFFDF8; border-color: var(--gold); font-weight: 500; }
+    .filter-tab__count {
+      display: inline-block; margin-left: .4rem; opacity: .8;
+      background: rgba(0,0,0,.1); padding: .05rem .5rem; border-radius: 999px;
+      font-size: .78rem;
+    }
+    .filter-tab.is-active .filter-tab__count { background: rgba(255,255,255,.25); }
+  </style>
+</head>
+<body>
+
+  <header class="ck-head">
+    <div class="ck-head__inner">
+      <div class="ck-head__brand">Cockpit · <em>Miroir intérieur</em></div>
+      <nav class="ck-head__nav">
+        <a href="./tableau-de-bord.html">Voie</a>
+        <a href="./miroir-cles.html">🪞 Miroir · Clés</a>
+        <a href="./miroir-demandes.html" class="is-active">Miroir · Demandes</a>
+        <a href="#" id="logout-link">Sortir</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="ck-main">
+    <div class="ck-container">
+
+      <h1 class="ck-h1">Demandes du <em>miroir intérieur</em></h1>
+      <p class="ck-sub">Les personnes qui ont demandé une clé. Accepter crée la clé et garde le lien avec la demande.</p>
+
+      <div class="filter-tabs" id="filter-tabs">
+        <button class="filter-tab is-active" data-f="en-attente">En attente <span class="filter-tab__count" id="cnt-en-attente">0</span></button>
+        <button class="filter-tab" data-f="accepte">Acceptées <span class="filter-tab__count" id="cnt-accepte">0</span></button>
+        <button class="filter-tab" data-f="refuse">Refusées <span class="filter-tab__count" id="cnt-refuse">0</span></button>
+        <button class="filter-tab" data-f="all">Toutes <span class="filter-tab__count" id="cnt-all">0</span></button>
+      </div>
+
+      <div id="list">— chargement —</div>
+
+    </div>
+  </main>
+
+  <script type="module" src="assets/js/miroir-demandes.js?v=1"></script>
+</body>
+</html>
