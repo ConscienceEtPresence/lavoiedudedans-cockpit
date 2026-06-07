@@ -271,6 +271,23 @@
         document.getElementById('stat-suggestions').textContent = suggestionsSnap.size;
         document.getElementById('stat-aujourdhui').textContent  = notesAujourdhui;
 
+        // — alerte : badge dans le titre de la page si attente
+        const totalAttente = demandesSnap.size + suggestionsSnap.size;
+        if (totalAttente > 0) {
+          document.title = `(${totalAttente}) Cockpit · La voie du dedans`;
+          // surligne les chiffres concernés
+          if (demandesSnap.size > 0) {
+            document.getElementById('stat-demandes').style.color = '#b4523f';
+            document.getElementById('stat-demandes').parentElement.style.borderColor = '#b4523f';
+            document.getElementById('stat-demandes').parentElement.style.boxShadow = '0 0 0 1px rgba(180,82,63,0.3)';
+          }
+          if (suggestionsSnap.size > 0) {
+            document.getElementById('stat-suggestions').style.color = '#b08840';
+          }
+        } else {
+          document.title = 'Cockpit · La voie du dedans';
+        }
+
         // mur des lampes
         const lampesEl = document.getElementById('lampes-mount');
         if (!actifs.length) {

@@ -113,9 +113,13 @@
     <h1 class="ck-title">Toutes les clés</h1>
     <p class="ck-subtitle">les lampes que vous avez tendues</p>
 
-    <p id="hint" style="font-family: var(--font-display); font-style: italic; color: var(--ink-mute); margin-bottom: var(--space-lg);">
+    <p id="hint" style="font-family: var(--font-display); font-style: italic; color: var(--ink-mute); margin-bottom: var(--space-md);">
       Cliquez sur <strong style="color:var(--gold); font-style:normal;">Modifier</strong> pour changer un mot-graine. L'historique est <strong style="color:var(--gold); font-style:normal;">toujours conservé</strong> — seul le mot d'entrée change.
     </p>
+
+    <div class="ck-field" style="max-width: 24rem; margin: 0 0 var(--space-lg);">
+      <input type="search" id="search" placeholder="🔍 Rechercher un prénom ou un mot-graine…" style="width:100%;" />
+    </div>
 
     <div id="codes-mount" class="ck-codes">
       <div class="ck-empty" id="loader">Chargement des clés…</div>
@@ -298,10 +302,24 @@
       render(codes);
     }
 
+    let allCodes = [];
+    function filterAndRender() {
+      const q = document.getElementById('search').value.trim().toLowerCase()
+        .normalize('NFD').replace(/[̀-ͯ]/g, '');
+      if (!q) return render(allCodes);
+      const f = allCodes.filter(c => {
+        const p = (c.prenomNorm || '').toLowerCase();
+        const m = (c.motGraine || '').toLowerCase();
+        return p.includes(q) || m.includes(q);
+      });
+      render(f);
+    }
+    document.getElementById('search').addEventListener('input', filterAndRender);
+
     requireAdmin(async () => {
       try {
-        const codes = await loadCodes();
-        render(codes);
+        allCodes = await loadCodes();
+        render(allCodes);
       } catch (e) {
         console.error(e);
         mount.innerHTML = `<div class="ck-empty">Une difficulté à charger les clés. Rechargez la page.</div>`;

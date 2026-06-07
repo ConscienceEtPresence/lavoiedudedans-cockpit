@@ -190,16 +190,19 @@
     }
 
     function renderDemande(d) {
+      const isRappel = d.type === 'rappel';
       const statutLabel = {
         'en-attente': '<span class="ck-code__badge" style="background:rgba(192,160,80,0.15); color:var(--gold);">en attente</span>',
         'acceptee':   '<span class="ck-code__badge ck-code__badge--active">acceptée</span>',
         'refusee':    '<span class="ck-code__badge ck-code__badge--inactive">refusée</span>'
       }[d.statut] || '';
+      const rappelBadge = isRappel ? '<span class="ck-code__badge" style="background:rgba(216,164,72,0.2); color:#b08840;">🔑 mot-graine oublié</span>' : '';
       return `
-        <article class="ck-demande" data-id="${esc(d.id)}">
+        <article class="ck-demande" data-id="${esc(d.id)}" style="${isRappel ? 'border-color: var(--gold);' : ''}">
           <div class="ck-demande__head">
             <span class="ck-demande__prenom">${esc(d.prenom || '?')}</span>
             <span class="ck-demande__when">· ${relatif(d.creeLe)}</span>
+            ${rappelBadge}
             ${statutLabel}
             <span class="ck-demande__ticket">${esc(d.ticketId || d.id)}</span>
           </div>
@@ -207,8 +210,12 @@
           ${d.message ? `<div class="ck-demande__msg">« ${esc(d.message)} »</div>` : ''}
           ${d.statut === 'en-attente' ? `
             <div class="ck-demande__actions">
-              <button type="button" class="ck-btn ck-btn--gold" data-action="accepter" data-id="${esc(d.id)}">✦ Accepter et créer la clé</button>
-              <button type="button" class="ck-btn" data-action="refuser" data-id="${esc(d.id)}">Refuser</button>
+              ${isRappel ? `
+                <button type="button" class="ck-btn ck-btn--gold" data-action="retrouver" data-id="${esc(d.id)}">🔑 Retrouver son mot-graine</button>
+              ` : `
+                <button type="button" class="ck-btn ck-btn--gold" data-action="accepter" data-id="${esc(d.id)}">✦ Accepter et créer la clé</button>
+              `}
+              <button type="button" class="ck-btn" data-action="refuser" data-id="${esc(d.id)}">Marquer traitée</button>
             </div>
           ` : ''}
           ${d.motGraineAttribue ? `
@@ -228,6 +235,62 @@
       mount.querySelectorAll('[data-action="refuser"]').forEach(b => {
         b.addEventListener('click', () => refuser(b.dataset.id));
       });
+      mount.querySelectorAll('[data-action="retrouver"]').forEach(b => {
+        b.addEventListener('click', () => retrouverMotGraine(b.dataset.id));
+      });
+    }
+
+    async function retrouverMotGraine(id) {
+      const d = allDemandes.find(x => x.id === id);
+      if (!d) return;
+      const prenomNorm = normalize(d.prenom);
+      try {
+        const q = query(collection(db, 'codes'), where('prenomNorm', '==', prenomNorm));
+        const snap = await getDocs(q);
+        if (snap.empty) {
+          alert(`Aucune clé existante au nom de « ${d.prenom} ». Peut-être une variante d'orthographe ? Allez voir dans Clés et cherchez.`);
+          return;
+        }
+        const matches = [];
+        snap.forEach(doc => matches.push({ id: doc.id, ...doc.data() }));
+        // construit le brouillon
+        let msg = `Bonjour ${d.prenom},\n\n`;
+        if (matches.length === 1) {
+          const m = matches[0];
+          msg += `Voici votre mot-graine : ${m.motGraine}\n\n`;
+          msg += `Pour entrer, allez sur :\nhttps://lavoiedudedans.fr/pages/carnet/\n\n`;
+          msg += `et tapez :\n   Prénom        ${m.prenom}\n   Mot-graine    ${m.motGraine}\n\n`;
+        } else {
+          msg += `J'ai retrouvé plusieurs clés à votre nom. Pourriez-vous me dire celle qui est la vôtre ?\n\n`;
+          matches.forEach(m => { msg += `• ${m.prenom} + ${m.motGraine}\n`; });
+        }
+        msg += `Votre carnet et tout votre historique vous attendent intacts.\n\n— La voie du dedans`;
+
+        const box = document.getElementById(`accept-${id}`);
+        box.hidden = false;
+        box.innerHTML = `
+          <div class="ck-success-msg">
+            ${matches.length === 1
+              ? `✓ Clé retrouvée : <strong>${esc(matches[0].prenom)} + ${esc(matches[0].motGraine)}</strong>`
+              : `⚠ ${matches.length} clés trouvées au prénom <strong>${esc(d.prenom)}</strong> — précisez lequel.`
+            }
+            <pre style="white-space:pre-wrap; font-family: var(--font-display); margin-top:1rem;">${esc(msg)}</pre>
+            <button type="button" class="ck-btn ck-btn--gold" id="copy-${id}">📋 Copier le message</button>
+            <button type="button" class="ck-btn" id="done-${id}" style="margin-left:0.5rem;">Marquer traitée</button>
+          </div>
+        `;
+        document.getElementById(`copy-${id}`).addEventListener('click', async (e) => {
+          try { await navigator.clipboard.writeText(msg); e.target.textContent = 'Copié ✓'; }
+          catch { window.prompt('Copiez :', msg); }
+        });
+        document.getElementById(`done-${id}`).addEventListener('click', async () => {
+          await updateDoc(doc(db, 'demandes', id), { statut: 'acceptee', motGraineRappel: matches[0]?.motGraine || null, accepteeLe: serverTimestamp() });
+          await refresh();
+        });
+      } catch (e) {
+        console.error(e);
+        alert('Difficulté à chercher. Réessayez.');
+      }
     }
 
     function openAccept(id) {
