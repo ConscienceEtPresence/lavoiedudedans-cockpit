@@ -181,10 +181,10 @@ async function refresh() {
         <div class="codes-row__date">${date} · vu ${visite}</div>
         <div class="codes-row__code" title="${esc(c.id)}">${esc(c.id)}</div>
         <div class="codes-row__actions">
-          <button class="codes-row__action" data-act="edit" title="Modifier">✏️</button>
-          <button class="codes-row__action" data-act="copy" title="Copier le code">📋</button>
+          <button class="codes-row__action codes-row__action--primary" data-act="edit" title="Modifier prénom, type ou code">✏️ Modifier</button>
+          <button class="codes-row__action" data-act="copy" title="Copier le code">📋 Copier</button>
           <button class="codes-row__action" data-act="toggle" title="${c.actif === false ? 'Réactiver' : 'Désactiver'}">${c.actif === false ? '↻' : '⏸'}</button>
-          <button class="codes-row__action" data-act="delete" title="Supprimer">🗑</button>
+          <button class="codes-row__action codes-row__action--danger" data-act="delete" title="Supprimer">🗑</button>
         </div>
       </div>
       <div class="codes-edit" id="edit-${esc(c.id)}" hidden></div>

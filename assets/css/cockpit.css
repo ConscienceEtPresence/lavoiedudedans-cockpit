@@ -582,3 +582,43 @@ body { font-size: 16px; }
   color: var(--gold);
   font-family: var(--font-display);
 }
+
+/* v4 — Boutons d'action plus visibles sur la liste Miroir */
+.codes-row__action {
+  padding: 0.45rem 0.7rem !important;
+  background: var(--paper) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 8px !important;
+  font-size: 0.85rem !important;
+  cursor: pointer;
+  color: var(--ink-soft);
+  transition: all .2s;
+  white-space: nowrap;
+}
+.codes-row__action:hover {
+  border-color: var(--gold);
+  color: var(--ink-title);
+  background: #FFFDF4;
+}
+.codes-row__action--primary {
+  background: linear-gradient(170deg, #FFF8DC, #F4D77A) !important;
+  border-color: var(--gold) !important;
+  color: var(--ink-title) !important;
+  font-weight: 600;
+}
+.codes-row__action--primary:hover {
+  background: var(--gold) !important;
+  color: #FFFDF8 !important;
+}
+.codes-row__action--danger:hover {
+  border-color: #b4523f;
+  color: #b4523f;
+}
+@media (max-width: 700px) {
+  .codes-row__actions {
+    justify-content: flex-start !important;
+    gap: .4rem;
+    flex-wrap: wrap;
+  }
+  .codes-row__action { font-size: 0.9rem !important; padding: 0.5rem 0.8rem !important; }
+}
