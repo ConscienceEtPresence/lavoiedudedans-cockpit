@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>Toutes les clés · Cockpit</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Amiri:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/cockpit.css" />
+
+  <style>
+    .ck-codes { display: flex; flex-direction: column; gap: var(--space-md); }
+    .ck-code {
+      background: linear-gradient(170deg, #FFFDF8, var(--paper-deep));
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: var(--space-md) var(--space-lg);
+    }
+    .ck-code__head {
+      display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap;
+    }
+    .ck-code__prenom {
+      font-family: var(--font-display); font-weight: 500;
+      font-size: 1.25rem; color: var(--ink-title);
+    }
+    .ck-code__sep { color: var(--ink-mute); }
+    .ck-code__mot {
+      font-family: var(--font-display); font-style: italic;
+      font-size: 1.1rem; color: var(--gold);
+    }
+    .ck-code__lang {
+      font-family: var(--font-sans); font-size: 0.7rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--ink-mute); padding: 0.15rem 0.6rem;
+      border: 1px solid var(--line); border-radius: 999px;
+    }
+    .ck-code__badge {
+      font-family: var(--font-sans); font-size: 0.68rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 0.2rem 0.65rem; border-radius: 999px;
+    }
+    .ck-code__badge--active { background: rgba(46,125,122,0.12); color: #2E7D7A; }
+    .ck-code__badge--inactive { background: rgba(180,82,63,0.12); color: #b4523f; }
+    .ck-code__meta {
+      font-family: var(--font-display); font-style: italic;
+      font-size: 0.88rem; color: var(--ink-mute);
+      margin-top: 0.4rem;
+    }
+    .ck-code__note {
+      margin-top: 0.5rem; padding: 0.5rem 0.8rem;
+      background: rgba(192,160,80,0.06);
+      border-left: 2px solid var(--gold-soft);
+      border-radius: 4px;
+      font-family: var(--font-display); font-style: italic;
+      font-size: 0.92rem; color: var(--ink-soft);
+    }
+    .ck-code__actions {
+      display: flex; gap: 0.5rem; flex-wrap: wrap;
+      margin-top: var(--space-md);
+    }
+    .ck-code__edit {
+      margin-top: var(--space-md);
+      padding: var(--space-md);
+      background: var(--paper);
+      border: 1px dashed var(--gold-soft);
+      border-radius: 10px;
+    }
+    .ck-code__edit-row {
+      display: flex; gap: 0.6rem; align-items: stretch; flex-wrap: wrap;
+    }
+    .ck-code__edit-row input {
+      flex: 1; min-width: 12rem;
+      font-family: var(--font-display); font-size: 1.05rem;
+      padding: 0.6rem 0.9rem;
+      border: 1px solid var(--line); border-radius: 10px;
+      background: #FFFDF8; outline: none;
+    }
+    .ck-code__edit-row input:focus { border-color: var(--gold); }
+    .ck-code__edit-info {
+      font-family: var(--font-display); font-style: italic;
+      font-size: 0.88rem; color: var(--ink-mute);
+      margin-top: 0.6rem;
+    }
+    .ck-code__edit-info strong { color: var(--gold); font-style: normal; font-weight: 500; }
+    .ck-empty {
+      text-align: center; padding: var(--space-2xl) var(--space-lg);
+      font-family: var(--font-display); font-style: italic;
+      color: var(--ink-mute);
+    }
+  </style>
+</head>
+<body>
+
+  <header class="ck-head">
+    <div class="ck-head__inner">
+      <div class="ck-head__brand">Cockpit · <em>La voie du dedans</em></div>
+      <nav class="ck-head__nav">
+        <a href="./tableau-de-bord.html">Tableau</a>
+        <a href="./codes.html" class="is-active">Toutes les clés</a>
+        <a href="./creer-cle.html">Créer</a>
+        <a href="#" id="logout-link">Sortir</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="ck-main">
+    <h1 class="ck-title">Toutes les clés</h1>
+    <p class="ck-subtitle">les lampes que vous avez tendues</p>
+
+    <p id="hint" style="font-family: var(--font-display); font-style: italic; color: var(--ink-mute); margin-bottom: var(--space-lg);">
+      Cliquez sur <strong style="color:var(--gold); font-style:normal;">Modifier</strong> pour changer un mot-graine. L'historique est <strong style="color:var(--gold); font-style:normal;">toujours conservé</strong> — seul le mot d'entrée change.
+    </p>
+
+    <div id="codes-mount" class="ck-codes">
+      <div class="ck-empty" id="loader">Chargement des clés…</div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { db } from './assets/js/firebase-init.js';
+    import { requireAdmin, logout } from './assets/js/auth-guard.js';
+    import { collection, getDocs, doc, updateDoc, query, where, orderBy, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    document.getElementById('logout-link').addEventListener('click', (e) => {
+      e.preventDefault(); logout();
+    });
+
+    const mount = document.getElementById('codes-mount');
+
+    function esc(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;');
+    }
+    function normalize(s) {
+      return String(s || '').trim().toLowerCase()
+        .normalize('NFD').replace(/[̀-ͯ]/g, '');
+    }
+    function dateLisible(ts) {
+      if (!ts) return null;
+      try {
+        const d = ts.toDate ? ts.toDate() : new Date(ts);
+        return d.toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' });
+      } catch { return null; }
+    }
+    function relatif(ts) {
+      if (!ts) return null;
+      try {
+        const d = ts.toDate ? ts.toDate() : new Date(ts);
+        const ms = Date.now() - d.getTime();
+        const j = Math.floor(ms / (1000*60*60*24));
+        if (j < 1)  return "aujourd'hui";
+        if (j === 1) return 'hier';
+        if (j < 30) return `il y a ${j} jours`;
+        if (j < 365) return `il y a ${Math.floor(j/30)} mois`;
+        return `il y a ${Math.floor(j/365)} ans`;
+      } catch { return null; }
+    }
+
+    async function loadCodes() {
+      const snap = await getDocs(collection(db, 'codes'));
+      const codes = [];
+      snap.forEach(d => codes.push({ id: d.id, ...d.data() }));
+      // tri : actifs d'abord, puis par date de création décroissante
+      codes.sort((a, b) => {
+        if (a.actif !== b.actif) return a.actif ? -1 : 1;
+        const ta = a.creeLe?.toMillis?.() || 0;
+        const tb = b.creeLe?.toMillis?.() || 0;
+        return tb - ta;
+      });
+      return codes;
+    }
+
+    function render(codes) {
+      if (!codes.length) {
+        mount.innerHTML = `<div class="ck-empty">Aucune clé encore. <a href="./creer-cle.html">Créer la première →</a></div>`;
+        return;
+      }
+      mount.innerHTML = codes.map(c => renderCode(c)).join('');
+      // bindings
+      mount.querySelectorAll('[data-action="modifier"]').forEach(b => {
+        b.addEventListener('click', () => openEdit(b.dataset.id));
+      });
+      mount.querySelectorAll('[data-action="toggle"]').forEach(b => {
+        b.addEventListener('click', () => toggleActif(b.dataset.id, b.dataset.current === 'true'));
+      });
+    }
+
+    function renderCode(c) {
+      const langBadge = c.langue === 'en' ? 'EN' : 'FR';
+      const actif = c.actif !== false;
+      const badgeCls = actif ? 'ck-code__badge--active' : 'ck-code__badge--inactive';
+      const badgeTxt = actif ? 'active' : 'désactivée';
+      const last = c.dernierLogin ? `Dernière connexion : ${relatif(c.dernierLogin)}` : 'Jamais connecté(e) encore';
+      const created = c.creeLe ? `Créée ${relatif(c.creeLe)}` : '';
+      return `
+        <article class="ck-code" data-id="${esc(c.id)}">
+          <div class="ck-code__head">
+            <span class="ck-code__prenom">${esc(c.prenom || '?')}</span>
+            <span class="ck-code__sep">·</span>
+            <span class="ck-code__mot">${esc(c.motGraine || '?')}</span>
+            <span class="ck-code__lang">${langBadge}</span>
+            <span class="ck-code__badge ${badgeCls}">${badgeTxt}</span>
+          </div>
+          <div class="ck-code__meta">${esc(created)}${created && last ? ' · ' : ''}${esc(last)}</div>
+          ${c.note ? `<div class="ck-code__note">${esc(c.note)}</div>` : ''}
+          <div class="ck-code__actions">
+            <button type="button" class="ck-btn ck-btn--small" data-action="modifier" data-id="${esc(c.id)}">Modifier le mot-graine</button>
+            <button type="button" class="ck-btn ck-btn--small" data-action="toggle" data-id="${esc(c.id)}" data-current="${actif}">
+              ${actif ? 'Désactiver' : 'Réactiver'}
+            </button>
+          </div>
+          <div class="ck-code__edit" id="edit-${esc(c.id)}" hidden></div>
+        </article>
+      `;
+    }
+
+    function openEdit(id) {
+      const box = document.getElementById(`edit-${id}`);
+      const article = box.closest('.ck-code');
+      const currentMot = article.querySelector('.ck-code__mot').textContent.trim();
+      const prenom = article.querySelector('.ck-code__prenom').textContent.trim();
+
+      box.hidden = false;
+      box.innerHTML = `
+        <div class="ck-code__edit-row">
+          <input type="text" id="new-${id}" value="${esc(currentMot)}" placeholder="nouveau mot-graine" autocapitalize="none" spellcheck="false" />
+          <button type="button" class="ck-btn ck-btn--gold ck-btn--small" id="save-${id}">Enregistrer</button>
+          <button type="button" class="ck-btn ck-btn--small" id="cancel-${id}">Annuler</button>
+        </div>
+        <div class="ck-code__edit-info">
+          ✓ L'historique de <strong>${esc(prenom)}</strong> est conservé — seul le mot d'entrée change.
+        </div>
+        <div class="ck-error" id="err-${id}" style="display:none;"></div>
+      `;
+      document.getElementById(`new-${id}`).focus();
+      document.getElementById(`new-${id}`).select();
+      document.getElementById(`cancel-${id}`).addEventListener('click', () => { box.hidden = true; });
+      document.getElementById(`save-${id}`).addEventListener('click', () => saveMotGraine(id));
+    }
+
+    async function saveMotGraine(id) {
+      const input = document.getElementById(`new-${id}`);
+      const errEl = document.getElementById(`err-${id}`);
+      const newMot = normalize(input.value);
+      if (!newMot) { errEl.textContent = 'Le mot-graine ne peut pas être vide.'; errEl.style.display = 'block'; return; }
+
+      const article = document.querySelector(`article[data-id="${id}"]`);
+      const prenomNorm = normalize(article.querySelector('.ck-code__prenom').textContent.trim());
+
+      // vérifie qu'un autre code n'a pas déjà ce duo
+      const q = query(collection(db, 'codes'),
+                      where('prenomNorm', '==', prenomNorm),
+                      where('motGraine', '==', newMot));
+      const existing = await getDocs(q);
+      let conflict = false;
+      existing.forEach(d => { if (d.id !== id) conflict = true; });
+      if (conflict) {
+        errEl.textContent = `Une autre clé existe déjà pour ce duo prénom + mot-graine.`;
+        errEl.style.display = 'block';
+        return;
+      }
+
+      try {
+        await updateDoc(doc(db, 'codes', id), { motGraine: newMot });
+        // refresh
+        await refresh();
+      } catch (e) {
+        console.error(e);
+        errEl.textContent = 'Une difficulté à enregistrer. Réessayez.';
+        errEl.style.display = 'block';
+      }
+    }
+
+    async function toggleActif(id, currentlyActive) {
+      const newState = !currentlyActive;
+      const label = newState ? 'réactiver' : 'désactiver';
+      if (!confirm(`Voulez-vous ${label} cette clé ?`)) return;
+      try {
+        await updateDoc(doc(db, 'codes', id), { actif: newState });
+        await refresh();
+      } catch (e) {
+        console.error(e);
+        alert('Une difficulté à modifier. Réessayez.');
+      }
+    }
+
+    async function refresh() {
+      mount.innerHTML = `<div class="ck-empty">Chargement…</div>`;
+      const codes = await loadCodes();
+      render(codes);
+    }
+
+    requireAdmin(async () => {
+      try {
+        const codes = await loadCodes();
+        render(codes);
+      } catch (e) {
+        console.error(e);
+        mount.innerHTML = `<div class="ck-empty">Une difficulté à charger les clés. Rechargez la page.</div>`;
+      }
+    });
+  </script>
+</body>
+</html>
