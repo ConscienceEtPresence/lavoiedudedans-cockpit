@@ -10,6 +10,71 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Amiri:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="assets/css/cockpit.css" />
+
+  <style>
+    .ck-lampes {
+      display: flex; flex-wrap: wrap; gap: 0.7rem; justify-content: center;
+      padding: var(--space-md) 0;
+    }
+    .ck-lampe {
+      width: 48px; height: 64px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 0.2rem;
+      border-radius: 8px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      position: relative;
+      transition: all 0.2s;
+      cursor: default;
+    }
+    .ck-lampe__icon {
+      font-size: 1.4rem; line-height: 1;
+    }
+    .ck-lampe__name {
+      font-family: var(--font-sans); font-size: 0.62rem;
+      color: var(--ink-mute);
+      max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .ck-lampe--allumee {
+      background: linear-gradient(170deg, #FFF8DC, #F4D77A);
+      border-color: var(--gold);
+      box-shadow: 0 0 18px rgba(192,160,80,0.35);
+    }
+    .ck-lampe--allumee .ck-lampe__name { color: var(--ink-title); }
+    .ck-lampe--tiede {
+      background: linear-gradient(170deg, #FFFDF4, #F4EAD0);
+      border-color: var(--gold-soft);
+    }
+    .ck-lampe--veilleuse {
+      opacity: 0.6;
+    }
+    .ck-lampe--eteinte {
+      opacity: 0.35;
+      background: var(--paper-warm);
+    }
+    .ck-lampes-legende {
+      display: flex; gap: 1.2rem; justify-content: center;
+      margin-top: var(--space-md);
+      font-family: var(--font-display); font-style: italic;
+      font-size: 0.85rem; color: var(--ink-mute);
+    }
+    .ck-activity { display: flex; flex-direction: column; gap: 0.5rem; }
+    .ck-activity__item {
+      display: flex; gap: 0.6rem; align-items: baseline;
+      padding: 0.5rem 0;
+      border-bottom: 1px dashed var(--line);
+      font-family: var(--font-display); font-size: 0.98rem;
+    }
+    .ck-activity__item:last-child { border-bottom: none; }
+    .ck-activity__when {
+      font-family: var(--font-sans); font-size: 0.72rem;
+      color: var(--ink-mute); min-width: 6rem;
+    }
+    .ck-activity__what { color: var(--ink-soft); }
+    .ck-activity__what strong { color: var(--ink-title); font-weight: 500; }
+    .ck-activity__what em { color: var(--gold); font-style: italic; }
+  </style>
 </head>
 <body>
 
@@ -18,7 +83,10 @@
       <div class="ck-head__brand">Cockpit · <em>La voie du dedans</em></div>
       <nav class="ck-head__nav">
         <a href="./tableau-de-bord.html" class="is-active">Tableau</a>
-        <a href="./codes.html">Toutes les clés</a>
+        <a href="./demandes.html">Demandes</a>
+        <a href="./codes.html">Clés</a>
+        <a href="./suggestions.html">Suggestions</a>
+        <a href="./souffle.html">Souffle</a>
         <a href="./creer-cle.html">Créer</a>
         <a href="#" id="logout-link">Sortir</a>
       </nav>
@@ -26,13 +94,13 @@
   </header>
 
   <main class="ck-main">
-    <h1 class="ck-title">Tableau de bord</h1>
-    <p class="ck-subtitle" id="hello">Bonjour…</p>
+    <h1 class="ck-title" id="hello-title">Bonjour…</h1>
+    <p class="ck-subtitle" id="hello-sub">…</p>
 
     <section class="ck-stats">
       <div class="ck-stat">
         <span class="ck-stat__n" id="stat-codes">·</span>
-        <span class="ck-stat__l">Clés actives</span>
+        <span class="ck-stat__l">Lampes actives</span>
       </div>
       <div class="ck-stat">
         <span class="ck-stat__n" id="stat-demandes">·</span>
@@ -40,52 +108,202 @@
       </div>
       <div class="ck-stat">
         <span class="ck-stat__n" id="stat-suggestions">·</span>
-        <span class="ck-stat__l">Suggestions reçues</span>
+        <span class="ck-stat__l">Suggestions nouvelles</span>
+      </div>
+      <div class="ck-stat">
+        <span class="ck-stat__n" id="stat-aujourdhui">·</span>
+        <span class="ck-stat__l">Notés aujourd'hui</span>
       </div>
     </section>
 
     <section class="ck-section">
       <h2 class="ck-section__title">Action rapide</h2>
-      <p style="margin: 0 0 var(--space-md); color: var(--ink-soft);">
-        Tendre une lampe à quelqu'un — créer une clé pour un nouveau cheminant.
-      </p>
-      <a href="./creer-cle.html" class="ck-btn ck-btn--gold">
-        ✦ Créer une clé
-      </a>
+      <div style="display: flex; gap: 0.7rem; flex-wrap: wrap;">
+        <a href="./creer-cle.html" class="ck-btn ck-btn--gold">✦ Créer une clé</a>
+        <a href="./demandes.html" class="ck-btn">📨 Voir les demandes</a>
+        <a href="./suggestions.html" class="ck-btn">💬 Lire les suggestions</a>
+        <a href="./souffle.html" class="ck-btn">🌬 Le souffle collectif</a>
+      </div>
     </section>
 
     <section class="ck-section">
-      <h2 class="ck-section__title">Vie du carnet (à venir)</h2>
-      <p style="margin: 0; color: var(--ink-mute); font-style: italic;">
-        Bientôt : la liste des clés, les demandes en attente, les suggestions reçues, et le souffle collectif.
+      <h2 class="ck-section__title">Le mur des lampes</h2>
+      <p style="margin: 0 0 var(--space-md); color: var(--ink-soft); font-style: italic;">
+        Chaque lampe est une personne. Allumée si elle est venue aujourd'hui, tiède pour cette semaine, en veille pour ce mois, éteinte si elle s'est éloignée.
       </p>
+      <div class="ck-lampes" id="lampes-mount">
+        <div style="font-family: var(--font-display); color: var(--ink-mute); font-style: italic;">…</div>
+      </div>
+      <div class="ck-lampes-legende">
+        <span>🪔 allumée — aujourd'hui</span>
+        <span>tiède — cette semaine</span>
+        <span>veille — ce mois</span>
+        <span>éteinte — plus loin</span>
+      </div>
+    </section>
+
+    <section class="ck-section">
+      <h2 class="ck-section__title">Activité récente</h2>
+      <div class="ck-activity" id="activity-mount">
+        <div style="font-family: var(--font-display); color: var(--ink-mute); font-style: italic;">…</div>
+      </div>
     </section>
   </main>
 
   <script type="module">
     import { db } from './assets/js/firebase-init.js';
     import { requireAdmin, logout } from './assets/js/auth-guard.js';
-    import { collection, getDocs, query, where }
+    import { collection, getDocs, query, where, orderBy, limit }
       from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     document.getElementById('logout-link').addEventListener('click', (e) => {
       e.preventDefault(); logout();
     });
 
-    requireAdmin(async (user) => {
-      const prenom = user.displayName?.split(' ')[0] || 'Brahms';
-      document.getElementById('hello').innerHTML = `Bonjour, <em>${prenom}</em>.`;
+    function joursDepuis(date) {
+      return Math.floor((Date.now() - date.getTime()) / (1000*60*60*24));
+    }
+    function heuresDepuis(date) {
+      return Math.floor((Date.now() - date.getTime()) / (1000*60*60));
+    }
+    function relatif(d) {
+      const h = heuresDepuis(d);
+      const j = joursDepuis(d);
+      if (h < 1) return "à l'instant";
+      if (h < 24) return `il y a ${h}h`;
+      if (j === 1) return 'hier';
+      if (j < 30) return `il y a ${j} jours`;
+      return d.toLocaleDateString('fr-FR', { day:'numeric', month:'long' });
+    }
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+    function salut() {
+      const h = new Date().getHours();
+      if (h < 6)  return { titre: 'Bonne nuit', sub: 'Tout est calme. La lampe veille avec vous.' };
+      if (h < 11) return { titre: 'Bonjour',    sub: "L'aube est un commencement." };
+      if (h < 14) return { titre: 'Bonjour',    sub: 'Le jour est haut. Le carnet vous suit.' };
+      if (h < 18) return { titre: 'Bonjour',    sub: "L'après-midi se déploie." };
+      if (h < 22) return { titre: 'Bonsoir',    sub: 'Le soir vient. Quel est le mouvement du carnet aujourd\'hui ?' };
+      return { titre: 'Bonsoir', sub: 'La nuit est avancée. Veillez doucement.' };
+    }
+    function dateKey(daysAgo) {
+      const d = new Date();
+      d.setDate(d.getDate() - daysAgo);
+      const y = d.getFullYear();
+      const m = String(d.getMonth()+1).padStart(2, '0');
+      const j = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${j}`;
+    }
 
-      // chargement des chiffres
+    function classeLampe(daysSince) {
+      if (daysSince === null) return 'ck-lampe--eteinte';
+      if (daysSince <= 1) return 'ck-lampe--allumee';
+      if (daysSince <= 7) return 'ck-lampe--tiede';
+      if (daysSince <= 30) return 'ck-lampe--veilleuse';
+      return 'ck-lampe--eteinte';
+    }
+
+    requireAdmin(async (user) => {
+      // salutation
+      const s = salut();
+      const prenom = user.displayName?.split(' ')[0] || 'Brahms';
+      document.getElementById('hello-title').innerHTML = `${s.titre}, <em style="color:var(--gold); font-style:italic;">${esc(prenom)}</em>.`;
+      document.getElementById('hello-sub').textContent = s.sub;
+
       try {
+        // chargement
         const [codesSnap, demandesSnap, suggestionsSnap] = await Promise.all([
-          getDocs(query(collection(db, 'codes'), where('actif', '==', true))),
+          getDocs(collection(db, 'codes')),
           getDocs(query(collection(db, 'demandes'), where('statut', '==', 'en-attente'))),
-          getDocs(collection(db, 'suggestions'))
+          getDocs(query(collection(db, 'suggestions'), where('statut', '==', 'neuve')))
         ]);
-        document.getElementById('stat-codes').textContent       = codesSnap.size;
+        const codes = [];
+        codesSnap.forEach(d => codes.push({ id: d.id, ...d.data() }));
+        const actifs = codes.filter(c => c.actif !== false);
+
+        // jours notés aujourd'hui (parcourt les sous-collections)
+        const today = dateKey(0);
+        let notesAujourdhui = 0;
+        const activities = [];
+        for (const c of actifs) {
+          try {
+            const jSnap = await getDocs(collection(db, 'carnets', c.id, 'jours'));
+            jSnap.forEach(jd => {
+              if (jd.id === today) notesAujourdhui++;
+              const data = jd.data();
+              if (data.matin?.noteLe) activities.push({
+                at: data.matin.noteLe.toDate ? data.matin.noteLe.toDate() : new Date(data.matin.noteLe),
+                what: `<strong>${esc(c.prenom)}</strong> a noté son matin`
+              });
+              if (data.soir?.fermeLe || data.soir?.ferméLe) {
+                const t = data.soir.fermeLe || data.soir.ferméLe;
+                activities.push({
+                  at: t.toDate ? t.toDate() : new Date(t),
+                  what: `<strong>${esc(c.prenom)}</strong> a fermé sa journée`
+                });
+              }
+            });
+          } catch {}
+          // login
+          if (c.dernierLogin) {
+            try {
+              activities.push({
+                at: c.dernierLogin.toDate ? c.dernierLogin.toDate() : new Date(c.dernierLogin),
+                what: `<strong>${esc(c.prenom)}</strong> s'est connecté(e)`
+              });
+            } catch {}
+          }
+          // créations
+          if (c.creeLe) {
+            try {
+              activities.push({
+                at: c.creeLe.toDate ? c.creeLe.toDate() : new Date(c.creeLe),
+                what: `Clé créée pour <strong>${esc(c.prenom)}</strong> · <em>${esc(c.motGraine)}</em>`
+              });
+            } catch {}
+          }
+        }
+
+        // chiffres
+        document.getElementById('stat-codes').textContent       = actifs.length;
         document.getElementById('stat-demandes').textContent    = demandesSnap.size;
         document.getElementById('stat-suggestions').textContent = suggestionsSnap.size;
+        document.getElementById('stat-aujourdhui').textContent  = notesAujourdhui;
+
+        // mur des lampes
+        const lampesEl = document.getElementById('lampes-mount');
+        if (!actifs.length) {
+          lampesEl.innerHTML = `<div style="color: var(--ink-mute); font-style: italic;">Aucune lampe encore allumée. <a href="./creer-cle.html">Tendre la première →</a></div>`;
+        } else {
+          lampesEl.innerHTML = actifs.map(c => {
+            let last = null;
+            try { last = c.dernierLogin?.toDate ? c.dernierLogin.toDate() : null; } catch {}
+            const days = last ? joursDepuis(last) : null;
+            const cls = classeLampe(days);
+            return `
+              <div class="ck-lampe ${cls}" title="${esc(c.prenom)} · ${esc(c.motGraine)} · ${last ? relatif(last) : 'jamais ouverte'}">
+                <span class="ck-lampe__icon">🪔</span>
+                <span class="ck-lampe__name">${esc(c.prenom)}</span>
+              </div>
+            `;
+          }).join('');
+        }
+
+        // activité récente : trie par date desc, prend les 12 derniers
+        activities.sort((a, b) => b.at - a.at);
+        const recent = activities.slice(0, 12);
+        const actEl = document.getElementById('activity-mount');
+        if (!recent.length) {
+          actEl.innerHTML = `<div style="color: var(--ink-mute); font-style: italic;">Aucune activité encore. Le carnet attend.</div>`;
+        } else {
+          actEl.innerHTML = recent.map(a => `
+            <div class="ck-activity__item">
+              <span class="ck-activity__when">${relatif(a.at)}</span>
+              <span class="ck-activity__what">${a.what}</span>
+            </div>
+          `).join('');
+        }
       } catch (e) {
         console.error(e);
       }

@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>Demandes · Cockpit</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Amiri:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/cockpit.css" />
+
+  <style>
+    .ck-demande {
+      background: linear-gradient(170deg, #FFFDF8, var(--paper-deep));
+      border: 1px solid var(--gold-soft);
+      border-radius: 14px;
+      padding: var(--space-lg);
+      margin-bottom: var(--space-lg);
+    }
+    .ck-demande__head {
+      display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap;
+      margin-bottom: 0.4rem;
+    }
+    .ck-demande__prenom {
+      font-family: var(--font-display); font-weight: 500;
+      font-size: 1.4rem; color: var(--ink-title);
+    }
+    .ck-demande__when {
+      font-family: var(--font-display); font-style: italic;
+      font-size: 0.92rem; color: var(--ink-mute);
+    }
+    .ck-demande__ticket {
+      font-family: var(--font-sans); font-size: 0.72rem;
+      letter-spacing: 0.08em; color: var(--gold);
+      padding: 0.2rem 0.6rem; background: rgba(192,160,80,0.12);
+      border-radius: 999px;
+    }
+    .ck-demande__contact {
+      font-family: var(--font-display); font-size: 1rem;
+      color: var(--ink-soft); margin-bottom: var(--space-sm);
+    }
+    .ck-demande__contact strong {
+      font-weight: 500; color: var(--gold); font-family: var(--font-sans);
+      font-size: 0.74rem; letter-spacing: 0.1em; text-transform: uppercase;
+      margin-right: 0.6rem;
+    }
+    .ck-demande__msg {
+      font-family: var(--font-display); font-style: italic;
+      font-size: 1.05rem; line-height: 1.6; color: var(--ink-soft);
+      padding: var(--space-md);
+      background: rgba(192,160,80,0.05);
+      border-left: 3px solid var(--gold-soft);
+      border-radius: 6px;
+      margin: var(--space-md) 0;
+    }
+    .ck-demande__actions {
+      display: flex; gap: 0.6rem; flex-wrap: wrap;
+    }
+    .ck-demande__accept-box {
+      margin-top: var(--space-md);
+      padding: var(--space-md);
+      background: var(--paper);
+      border: 1px dashed var(--gold-soft);
+      border-radius: 10px;
+    }
+    .ck-success-msg {
+      background: rgba(46,125,122,0.08);
+      border-left: 3px solid #2E7D7A;
+      padding: var(--space-md);
+      border-radius: 6px;
+      margin: var(--space-md) 0;
+    }
+    .ck-success-msg pre {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: var(--ink-soft);
+      white-space: pre-wrap;
+      margin: 0.5rem 0;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="ck-head">
+    <div class="ck-head__inner">
+      <div class="ck-head__brand">Cockpit · <em>La voie du dedans</em></div>
+      <nav class="ck-head__nav">
+        <a href="./tableau-de-bord.html">Tableau</a>
+        <a href="./demandes.html" class="is-active">Demandes</a>
+        <a href="./codes.html">Clés</a>
+        <a href="./suggestions.html">Suggestions</a>
+        <a href="./souffle.html">Souffle</a>
+        <a href="./creer-cle.html">Créer</a>
+        <a href="#" id="logout-link">Sortir</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="ck-main">
+    <h1 class="ck-title">Demandes en attente</h1>
+    <p class="ck-subtitle">les personnes qui ont demandé une lampe</p>
+
+    <div class="ck-section" id="filter-row" style="display:flex; gap:0.5rem; align-items:center; padding:var(--space-sm) var(--space-md);">
+      <span style="font-family: var(--font-sans); font-size: 0.78rem; color: var(--ink-mute);">Filtrer :</span>
+      <button type="button" class="ck-btn ck-btn--small" data-filter="en-attente" id="filter-pending">En attente</button>
+      <button type="button" class="ck-btn ck-btn--small" data-filter="acceptee" id="filter-accepted">Acceptées</button>
+      <button type="button" class="ck-btn ck-btn--small" data-filter="refusee" id="filter-refused">Refusées</button>
+      <button type="button" class="ck-btn ck-btn--small" data-filter="all" id="filter-all">Toutes</button>
+    </div>
+
+    <div id="demandes-mount">
+      <div style="text-align:center; padding: var(--space-xl); color: var(--ink-mute); font-style: italic;">Chargement…</div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { db } from './assets/js/firebase-init.js';
+    import { requireAdmin, logout } from './assets/js/auth-guard.js';
+    import { paletteHTML, PALETTE } from './assets/js/palette.js';
+    import { collection, getDocs, doc, updateDoc, addDoc, query, where, orderBy, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    document.getElementById('logout-link').addEventListener('click', (e) => {
+      e.preventDefault(); logout();
+    });
+
+    const mount = document.getElementById('demandes-mount');
+    let currentFilter = 'en-attente';
+    let allDemandes = [];
+
+    function esc(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;');
+    }
+    function normalize(s) {
+      return String(s || '').trim().toLowerCase()
+        .normalize('NFD').replace(/[̀-ͯ]/g, '');
+    }
+    function relatif(ts) {
+      if (!ts) return '';
+      try {
+        const d = ts.toDate ? ts.toDate() : new Date(ts);
+        const ms = Date.now() - d.getTime();
+        const j = Math.floor(ms / (1000*60*60*24));
+        const h = Math.floor(ms / (1000*60*60));
+        if (h < 1) return "à l'instant";
+        if (h < 24) return `il y a ${h}h`;
+        if (j === 1) return 'hier';
+        if (j < 30) return `il y a ${j} jours`;
+        return d.toLocaleDateString('fr-FR', { day:'numeric', month:'long' });
+      } catch { return ''; }
+    }
+
+    async function loadDemandes() {
+      const snap = await getDocs(collection(db, 'demandes'));
+      const arr = [];
+      snap.forEach(d => arr.push({ id: d.id, ...d.data() }));
+      arr.sort((a, b) => {
+        const ta = a.creeLe?.toMillis?.() || 0;
+        const tb = b.creeLe?.toMillis?.() || 0;
+        return tb - ta;
+      });
+      return arr;
+    }
+
+    function render() {
+      const list = currentFilter === 'all'
+        ? allDemandes
+        : allDemandes.filter(d => d.statut === currentFilter);
+      // marque le bouton actif
+      document.querySelectorAll('#filter-row .ck-btn').forEach(b => {
+        b.classList.toggle('ck-btn--gold', b.dataset.filter === currentFilter);
+      });
+      if (!list.length) {
+        const msgs = {
+          'en-attente': 'Aucune demande en attente. Tout est tranquille.',
+          'acceptee':   'Aucune demande acceptée pour l\'instant.',
+          'refusee':    'Aucune demande refusée.',
+          'all':        'Aucune demande encore. Le formulaire attend.'
+        };
+        mount.innerHTML = `<div class="ck-empty" style="text-align:center; padding: var(--space-xl); color: var(--ink-mute); font-style: italic;">${msgs[currentFilter]}</div>`;
+        return;
+      }
+      mount.innerHTML = list.map(renderDemande).join('');
+      bindActions();
+    }
+
+    function renderDemande(d) {
+      const statutLabel = {
+        'en-attente': '<span class="ck-code__badge" style="background:rgba(192,160,80,0.15); color:var(--gold);">en attente</span>',
+        'acceptee':   '<span class="ck-code__badge ck-code__badge--active">acceptée</span>',
+        'refusee':    '<span class="ck-code__badge ck-code__badge--inactive">refusée</span>'
+      }[d.statut] || '';
+      return `
+        <article class="ck-demande" data-id="${esc(d.id)}">
+          <div class="ck-demande__head">
+            <span class="ck-demande__prenom">${esc(d.prenom || '?')}</span>
+            <span class="ck-demande__when">· ${relatif(d.creeLe)}</span>
+            ${statutLabel}
+            <span class="ck-demande__ticket">${esc(d.ticketId || d.id)}</span>
+          </div>
+          <div class="ck-demande__contact"><strong>Contact</strong>${esc(d.contact || '—')}</div>
+          ${d.message ? `<div class="ck-demande__msg">« ${esc(d.message)} »</div>` : ''}
+          ${d.statut === 'en-attente' ? `
+            <div class="ck-demande__actions">
+              <button type="button" class="ck-btn ck-btn--gold" data-action="accepter" data-id="${esc(d.id)}">✦ Accepter et créer la clé</button>
+              <button type="button" class="ck-btn" data-action="refuser" data-id="${esc(d.id)}">Refuser</button>
+            </div>
+          ` : ''}
+          ${d.motGraineAttribue ? `
+            <div style="margin-top: var(--space-sm); font-family: var(--font-display); font-style: italic; color: var(--ink-mute);">
+              → Clé créée : <strong style="color:var(--gold); font-style:normal;">${esc(d.prenom)} + ${esc(d.motGraineAttribue)}</strong>
+            </div>
+          ` : ''}
+          <div class="ck-demande__accept-box" id="accept-${esc(d.id)}" hidden></div>
+        </article>
+      `;
+    }
+
+    function bindActions() {
+      mount.querySelectorAll('[data-action="accepter"]').forEach(b => {
+        b.addEventListener('click', () => openAccept(b.dataset.id));
+      });
+      mount.querySelectorAll('[data-action="refuser"]').forEach(b => {
+        b.addEventListener('click', () => refuser(b.dataset.id));
+      });
+    }
+
+    function openAccept(id) {
+      const d = allDemandes.find(x => x.id === id);
+      const box = document.getElementById(`accept-${id}`);
+      box.hidden = false;
+      box.innerHTML = `
+        <div class="ck-section__title">Tendre la lampe à ${esc(d.prenom)}</div>
+        <div class="ck-field">
+          <label>Mot-graine confié</label>
+          <input type="text" id="mot-${id}" placeholder="ex. sabr, hilm, fitra…" autocapitalize="none" spellcheck="false" />
+          <div class="ck-palette">${paletteHTML()}</div>
+          <span class="ck-field__hint">Cliquez sur un mot ou tapez-en un. Choisissez selon ce que la personne porte ou doit travailler.</span>
+        </div>
+        <div class="ck-field">
+          <label>Note privée (facultatif)</label>
+          <textarea id="note-${id}" rows="2" placeholder="ex. Travaille la colère"></textarea>
+        </div>
+        <button type="button" class="ck-btn ck-btn--gold" id="save-${id}">✦ Créer la clé</button>
+        <button type="button" class="ck-btn" id="cancel-${id}">Annuler</button>
+        <div class="ck-error" id="err-${id}" style="display:none;"></div>
+      `;
+      box.querySelector('.ck-palette').addEventListener('click', (e) => {
+        const sp = e.target.closest('.ck-palette__mot');
+        if (sp) document.getElementById(`mot-${id}`).value = sp.dataset.mot;
+      });
+      document.getElementById(`cancel-${id}`).addEventListener('click', () => { box.hidden = true; });
+      document.getElementById(`save-${id}`).addEventListener('click', () => accepter(id));
+    }
+
+    async function accepter(id) {
+      const d = allDemandes.find(x => x.id === id);
+      const motGraine = normalize(document.getElementById(`mot-${id}`).value);
+      const note = document.getElementById(`note-${id}`).value.trim();
+      const errEl = document.getElementById(`err-${id}`);
+
+      if (!motGraine) {
+        errEl.textContent = 'Choisissez un mot-graine.';
+        errEl.style.display = 'block';
+        return;
+      }
+
+      const prenomNorm = normalize(d.prenom);
+
+      // vérifie qu'aucune clé identique n'existe
+      const q = query(collection(db, 'codes'),
+                      where('prenomNorm', '==', prenomNorm),
+                      where('motGraine', '==', motGraine));
+      const existing = await getDocs(q);
+      if (!existing.empty) {
+        errEl.textContent = `Une clé existe déjà pour « ${d.prenom} + ${motGraine} ». Choisissez un autre mot.`;
+        errEl.style.display = 'block';
+        return;
+      }
+
+      try {
+        // crée la clé
+        await addDoc(collection(db, 'codes'), {
+          prenom: d.prenom,
+          prenomNorm,
+          motGraine,
+          langue: d.langue || 'fr',
+          actif: true,
+          note: note || `Acceptée depuis le formulaire (${relatif(d.creeLe)})`,
+          contact: d.contact || null,
+          ticketSource: d.ticketId || d.id,
+          creeLe: serverTimestamp()
+        });
+        // met à jour la demande
+        await updateDoc(doc(db, 'demandes', id), {
+          statut: 'acceptee',
+          motGraineAttribue: motGraine,
+          accepteeLe: serverTimestamp()
+        });
+
+        // prépare le message à envoyer
+        const msg =
+          `Bonjour ${d.prenom},\n\n` +
+          `Votre carnet vous attend. Voici votre mot-graine : ${motGraine}.\n\n` +
+          `Pour entrer, allez sur :\n` +
+          `https://lavoiedudedans.fr/pages/carnet/\n\n` +
+          `et tapez :\n` +
+          `   Prénom        ${d.prenom}\n` +
+          `   Mot-graine    ${motGraine}\n\n` +
+          `Que ce mot vous accompagne.\n\n` +
+          `— La voie du dedans`;
+
+        const box = document.getElementById(`accept-${id}`);
+        box.innerHTML = `
+          <div class="ck-success-msg">
+            ✓ La clé est créée. Voici un brouillon à envoyer à <strong>${esc(d.prenom)}</strong> via ${esc(d.contact)} :
+            <pre>${esc(msg)}</pre>
+            <button type="button" class="ck-btn ck-btn--gold" id="copy-${id}">📋 Copier le message</button>
+          </div>
+        `;
+        document.getElementById(`copy-${id}`).addEventListener('click', async (e) => {
+          try {
+            await navigator.clipboard.writeText(msg);
+            e.target.textContent = 'Copié ✓';
+          } catch {
+            window.prompt('Copiez ce message :', msg);
+          }
+        });
+        setTimeout(refresh, 2000);
+      } catch (e) {
+        console.error(e);
+        errEl.textContent = 'Une difficulté à créer la clé. Réessayez.';
+        errEl.style.display = 'block';
+      }
+    }
+
+    async function refuser(id) {
+      if (!confirm('Marquer cette demande comme refusée ? Vous pourrez la retrouver plus tard dans le filtre « Refusées ».')) return;
+      try {
+        await updateDoc(doc(db, 'demandes', id), {
+          statut: 'refusee',
+          refuseeLe: serverTimestamp()
+        });
+        await refresh();
+      } catch (e) {
+        console.error(e);
+        alert('Une difficulté. Réessayez.');
+      }
+    }
+
+    async function refresh() {
+      allDemandes = await loadDemandes();
+      render();
+    }
+
+    document.querySelectorAll('#filter-row .ck-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        currentFilter = b.dataset.filter;
+        render();
+      });
+    });
+
+    requireAdmin(async () => {
+      try { await refresh(); }
+      catch (e) {
+        console.error(e);
+        mount.innerHTML = `<div style="text-align:center; padding:var(--space-xl); color:var(--ink-mute);">Une difficulté à charger les demandes.</div>`;
+      }
+    });
+  </script>
+</body>
+</html>
