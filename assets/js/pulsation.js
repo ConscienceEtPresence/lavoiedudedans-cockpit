@@ -28,9 +28,10 @@ requireAdmin(async () => {
     const data = {};
     snap.forEach(s => data[s.id] = s.data());
 
-    // Construire série 30 jours
+    // Construire série 30 jours + agrégat des pages
     const cells = [];
     let totalPV = 0, totalU = 0;
+    const pagesAggregate = {};  // path -> total count sur la période
     for (let i = DAYS - 1; i >= 0; i--) {
       const d = new Date(); d.setDate(d.getDate() - i);
       const k = dateKey(d);
@@ -38,6 +39,20 @@ requireAdmin(async () => {
       cells.push({ k, pv: day.pageviews || 0, u: day.uniques || 0 });
       totalPV += day.pageviews || 0;
       totalU  += day.uniques || 0;
+      // Pages
+      if (day.pages && typeof day.pages === 'object') {
+        for (const [path, count] of Object.entries(day.pages)) {
+          pagesAggregate[path] = (pagesAggregate[path] || 0) + count;
+        }
+      }
+    }
+    const topPages = Object.entries(pagesAggregate)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10);
+
+    function prettyPath(p) {
+      if (p === 'home') return '/  (accueil)';
+      return '/' + p.replace(/_/g, '/');
     }
 
     const today = todayKey();
@@ -89,10 +104,22 @@ requireAdmin(async () => {
           <span>aujourd'hui</span>
         </div>
 
-        <p style="margin-top:1.2rem;font-style:italic;color:var(--ink-mute);font-size:.85rem;font-family:'Cormorant Garamond',serif;">
+        <p style="margin-top:1.2rem;font-style:italic;color:var(--ink-mute);font-size:.9rem;font-family:'Cormorant Garamond',serif;">
           Total sur la période : <strong style="color:var(--ink-soft)">${totalPV}</strong> pageviews ·
           <strong style="color:var(--ink-soft)">${totalU}</strong> visiteurs uniques.
         </p>
+
+        ${topPages.length ? `
+          <div class="top-pages">
+            <div class="top-pages__head">Pages les plus visitées (30 jours)</div>
+            ${topPages.map(([path, count]) => `
+              <div class="top-pages__row">
+                <span class="top-pages__path">${prettyPath(path)}</span>
+                <span class="top-pages__count">${count}</span>
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
       </div>
     `);
   }

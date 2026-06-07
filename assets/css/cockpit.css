@@ -471,3 +471,114 @@ body { font-size: 16px; }
   .ck-container { padding: 0 var(--space-md); }
   .ck-section { padding: var(--space-md) !important; }
 }
+
+/* ============================================================
+   v3 — Séparation visuelle Voie / Miroir / Transverse dans la nav
+   ============================================================ */
+
+.ck-head__nav { gap: 0 !important; align-items: stretch !important; }
+.ck-head__nav .nav-group {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0 1.1rem;
+  border-right: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+.ck-head__nav .nav-group:first-child { padding-left: 0; }
+.ck-head__nav .nav-group:last-child { border-right: none; padding-right: 0; }
+
+.ck-head__nav .nav-group__label {
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin-right: 0.4rem;
+  white-space: nowrap;
+  opacity: 0.85;
+}
+.nav-group--voie .nav-group__label    { color: #B8860B; }
+.nav-group--miroir .nav-group__label  { color: var(--gold); }
+.nav-group--transverse .nav-group__label { color: var(--ink-soft); }
+
+.ck-head__nav .nav-group a {
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+  transition: color 0.2s;
+}
+.ck-head__nav .nav-group a:hover,
+.ck-head__nav .nav-group a.is-active {
+  color: var(--gold);
+  font-weight: 600;
+}
+
+/* Section active : badge sur le brand */
+.ck-head__brand .ck-section-tag {
+  display: inline-block;
+  margin-left: 0.6rem;
+  padding: 0.15rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-family: var(--font-sans);
+  font-weight: 600;
+}
+.ck-section-tag--voie    { background: rgba(184, 134, 11, 0.15); color: #B8860B; }
+.ck-section-tag--miroir  { background: rgba(192, 160, 80, 0.18); color: var(--gold); }
+
+/* Mobile : groupes empilés en colonne === */
+@media (max-width: 760px) {
+  .ck-head__nav { flex-direction: column; gap: 0.8rem !important; align-items: stretch !important; }
+  .ck-head__nav .nav-group {
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+    padding: 0.5rem 0 !important;
+    justify-content: flex-start;
+  }
+  .ck-head__nav .nav-group:last-child { border-bottom: none; }
+}
+
+/* ============================================================
+   Top pages tableau pour la Pulsation
+   ============================================================ */
+.top-pages {
+  margin-top: 1.5rem;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.top-pages__head {
+  padding: 0.7rem 1rem;
+  background: rgba(192,160,80,0.08);
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+  border-bottom: 1px solid var(--line);
+}
+.top-pages__row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.8rem;
+  padding: 0.55rem 1rem;
+  align-items: center;
+  font-size: 0.95rem;
+  border-bottom: 1px solid var(--line);
+}
+.top-pages__row:last-child { border-bottom: none; }
+.top-pages__path {
+  font-family: 'Courier New', monospace;
+  color: var(--ink-title);
+  font-size: 0.88rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.top-pages__count {
+  font-weight: 600;
+  color: var(--gold);
+  font-family: var(--font-display);
+}

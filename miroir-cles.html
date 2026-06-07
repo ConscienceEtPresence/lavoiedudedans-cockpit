@@ -101,12 +101,24 @@
 
   <header class="ck-head">
     <div class="ck-head__inner">
-      <div class="ck-head__brand">Cockpit · <em>Miroir intérieur</em></div>
+      <div class="ck-head__brand">Cockpit <span class="ck-section-tag ck-section-tag--miroir">🪞 Miroir</span></div>
       <nav class="ck-head__nav">
-        <a href="./tableau-de-bord.html">Voie</a>
-        <a href="./miroir-cles.html" class="is-active">🪞 Miroir · Clés</a>
-        <a href="./miroir-demandes.html">Miroir · Demandes</a>
-        <a href="#" id="logout-link">Sortir</a>
+        <div class="nav-group nav-group--voie">
+          <span class="nav-group__label">📿 Voie du dedans</span>
+          <a href="./tableau-de-bord.html">Tableau</a>
+          <a href="./codes.html">Clés</a>
+          <a href="./demandes.html">Demandes</a>
+        </div>
+        <div class="nav-group nav-group--miroir">
+          <span class="nav-group__label">🪞 Miroir</span>
+          <a href="./miroir-cles.html" class="is-active">Clés</a>
+          <a href="./miroir-demandes.html">Demandes</a>
+        </div>
+        <div class="nav-group nav-group--transverse">
+          <span class="nav-group__label">🫧 Transverse</span>
+          <a href="./pulsation.html">Pulsation</a>
+          <a href="#" id="logout-link">Sortir</a>
+        </div>
       </nav>
     </div>
   </header>
