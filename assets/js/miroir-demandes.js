@@ -2,9 +2,28 @@
 import { db } from './firebase-init.js';
 import { requireAdmin, logout } from './auth-guard.js';
 import {
-  collection, getDocs, addDoc, doc, updateDoc, deleteDoc,
+  collection, getDocs, addDoc, getDoc, setDoc, doc, updateDoc, deleteDoc,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+/* === Codes mémorables === */
+const MOTS_CLES = [
+  'aube','seuil','clarte','silence','oasis','sentier','lumiere','rivage','eveil','instant',
+  'origine','patience','douceur','horizon','sereine','jardin','fleuve','colline','ruisseau','fontaine',
+  'etoile','lune','aurore','crepuscule','pleine','flamme','braise','cendre','argile','cristal',
+  'perle','racine','feuille','graine','fruit','matin','midi','soir','nuit','veille',
+  'paix','joie','ferveur','grace','essence','present','naissance','passage','eclat','echo'
+];
+async function generateUniqueCode(maxTries = 8) {
+  for (let i = 0; i < maxTries; i++) {
+    const mot = MOTS_CLES[Math.floor(Math.random() * MOTS_CLES.length)];
+    const num = Math.floor(Math.random() * 900) + 10;
+    const candidate = `${mot}-${num}`;
+    const snap = await getDoc(doc(db, 'codes-type', candidate));
+    if (!snap.exists()) return candidate;
+  }
+  return `aube-${Date.now().toString().slice(-6)}`;
+}
 
 document.getElementById('logout-link')?.addEventListener('click', e => { e.preventDefault(); logout(); });
 
@@ -146,11 +165,32 @@ function renderList() {
         if (act === 'accept') {
           // 1. Créer le code dans codes-type
           // 2. Mettre à jour la demande avec statut accepte + codeAttribue
-          if (!confirm(`Créer une clé pour ${demande.prenom} (Type ${demande.typeDeclare}) ?`)) return;
+          // Demander à l'admin s'il veut un code personnalisé
+          const customCode = prompt(
+            `Créer une clé pour ${demande.prenom} (Type ${demande.typeDeclare}).\n\n` +
+            `Tapez un code personnalisé court et mémorisable (ex : ${demande.prenom.toLowerCase()}-T${demande.typeDeclare})\n` +
+            `ou laissez VIDE pour un code automatique mémorable (ex : aube-47) :`,
+            ''
+          );
+          if (customCode === null) return; // annulé
           b.disabled = true;
           b.textContent = 'Un instant…';
           try {
-            const codeRef = await addDoc(collection(db, 'codes-type'), {
+            let codeId;
+            const cleaned = customCode.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+            if (cleaned) {
+              const existing = await getDoc(doc(db, 'codes-type', cleaned));
+              if (existing.exists()) {
+                alert(`Le code "${cleaned}" est déjà pris. Réessayez avec un autre code.`);
+                b.disabled = false; b.textContent = 'Accepter → créer la clé';
+                return;
+              }
+              codeId = cleaned;
+            } else {
+              codeId = await generateUniqueCode();
+            }
+
+            await setDoc(doc(db, 'codes-type', codeId), {
               prenom: demande.prenom,
               prenomNorm: normPrenom(demande.prenom),
               type: demande.typeDeclare,
@@ -161,7 +201,7 @@ function renderList() {
             });
             await updateDoc(doc(db, 'demandes-type', id), {
               statut: 'accepte',
-              codeAttribue: codeRef.id,
+              codeAttribue: codeId,
               traiteeLe: serverTimestamp()
             });
             await load();

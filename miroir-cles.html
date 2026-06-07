@@ -178,6 +178,14 @@
               </select>
             </div>
 
+            <div class="ck-field">
+              <label class="ck-field__label" for="code-custom">Code personnalisé <em style="text-transform:none;letter-spacing:0;font-style:italic;color:var(--ink-mute);font-size:.78rem;">(optionnel — laissé vide = code mémorable auto)</em></label>
+              <input class="ck-input" id="code-custom" type="text" maxlength="40" placeholder="ex: fitra ou aube-247 — sera transmis à la personne" />
+              <p style="font-size:.85rem;color:var(--ink-mute);font-style:italic;margin-top:.4rem;font-family:'Cormorant Garamond',serif;">
+                Si vous laissez vide, un code mémorable comme <strong style="color:var(--gold)">aube-47</strong> ou <strong style="color:var(--gold)">clarte-128</strong> sera généré automatiquement.
+              </p>
+            </div>
+
             <div class="ck-actions">
               <button type="submit" class="ck-btn" id="submit-btn">Créer la clé</button>
             </div>
@@ -201,6 +209,6 @@
     </div>
   </main>
 
-  <script type="module" src="assets/js/miroir-cles.js?v=1"></script>
+  <script type="module" src="assets/js/miroir-cles.js?v=2"></script>
 </body>
 </html>

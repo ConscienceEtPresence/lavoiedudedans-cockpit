@@ -2,13 +2,45 @@
 import { db } from './firebase-init.js';
 import { requireAdmin, logout } from './auth-guard.js';
 import {
-  collection, getDocs, addDoc, doc, updateDoc, deleteDoc,
+  collection, getDocs, getDoc, setDoc, doc, updateDoc, deleteDoc,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 document.getElementById('logout-link')?.addEventListener('click', e => { e.preventDefault(); logout(); });
 
 const COL_CODES = 'codes-type';
+
+/* === Codes MÉMORISABLES — mot évocateur + nombre court === */
+const MOTS_CLES = [
+  'aube', 'seuil', 'clarte', 'silence', 'oasis',
+  'sentier', 'lumiere', 'rivage', 'eveil', 'instant',
+  'origine', 'patience', 'douceur', 'horizon', 'sereine',
+  'jardin', 'fleuve', 'colline', 'ruisseau', 'fontaine',
+  'etoile', 'lune', 'aurore', 'crepuscule', 'pleine',
+  'flamme', 'braise', 'cendre', 'argile', 'cristal',
+  'perle', 'racine', 'feuille', 'graine', 'fruit',
+  'matin', 'midi', 'soir', 'nuit', 'veille',
+  'paix', 'joie', 'ferveur', 'grace', 'essence',
+  'present', 'naissance', 'passage', 'eclat', 'echo',
+  'roseau', 'cedre', 'tilleul', 'olivier', 'amandier',
+  'colombe', 'hirondelle', 'cigale', 'biche', 'tortue'
+];
+
+function generateCode() {
+  const mot = MOTS_CLES[Math.floor(Math.random() * MOTS_CLES.length)];
+  const num = Math.floor(Math.random() * 900) + 10; // 10–909
+  return `${mot}-${num}`;
+}
+
+async function generateUniqueCode(maxTries = 8) {
+  for (let i = 0; i < maxTries; i++) {
+    const candidate = generateCode();
+    const snap = await getDoc(doc(db, COL_CODES, candidate));
+    if (!snap.exists()) return candidate;
+  }
+  // si vraiment collision, on étend le nombre
+  return `${MOTS_CLES[0]}-${Date.now().toString().slice(-6)}`;
+}
 
 const TYPES_INFO = {
   1: { nom: "L'Idéaliste / Le Perfectionniste",       centre: 'instinctif' },
@@ -59,7 +91,22 @@ document.getElementById('create-form').addEventListener('submit', async (e) => {
   btn.textContent = 'Un instant…';
 
   try {
-    const ref = await addDoc(collection(db, COL_CODES), {
+    // Code éditable par l'admin : si vide, on génère un code mémorisable
+    let codeId = document.getElementById('code-custom')?.value.trim();
+    if (codeId) {
+      codeId = codeId.toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 40);
+      // Vérifier que ce code n'existe pas déjà
+      const existing = await getDoc(doc(db, COL_CODES, codeId));
+      if (existing.exists()) {
+        alert(`Le code "${codeId}" est déjà pris. Choisissez-en un autre ou laissez vide pour génération automatique.`);
+        btn.disabled = false; btn.textContent = 'Créer la clé';
+        return;
+      }
+    } else {
+      codeId = await generateUniqueCode();
+    }
+
+    await setDoc(doc(db, COL_CODES, codeId), {
       prenom,
       prenomNorm: normPrenom(prenom),
       type: selectedType,
@@ -68,7 +115,7 @@ document.getElementById('create-form').addEventListener('submit', async (e) => {
       creeLe: serverTimestamp()
     });
     document.getElementById('result').style.display = 'block';
-    document.getElementById('result-id').textContent = ref.id;
+    document.getElementById('result-id').textContent = codeId;
     document.getElementById('prenom').value = '';
     selectedType = null;
     document.querySelectorAll('.ennea-picker__node').forEach(n => n.classList.remove('is-active'));
