@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>Miroir · Clés · Cockpit</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/cockpit.css" />
+
+  <style>
+    .ennea-picker {
+      position: relative; width: 280px; height: 280px;
+      margin: 1.4rem auto; user-select: none;
+    }
+    .ennea-picker svg { width: 100%; height: 100%; }
+    .ennea-picker__node {
+      cursor: pointer; transition: all 0.2s;
+    }
+    .ennea-picker__node circle {
+      fill: var(--paper); stroke: var(--gold-soft); stroke-width: 2;
+    }
+    .ennea-picker__node text {
+      fill: var(--ink-title); font-family: 'Cormorant Garamond', serif;
+      font-weight: 500; font-size: 16px; pointer-events: none;
+    }
+    .ennea-picker__node:hover circle { stroke: var(--gold); stroke-width: 2.5; }
+    .ennea-picker__node.is-active circle {
+      fill: var(--gold); stroke: var(--gold);
+      filter: drop-shadow(0 0 8px rgba(192,160,80,0.5));
+    }
+    .ennea-picker__node.is-active text { fill: #FFFDF8; }
+    .ennea-lines { stroke: var(--gold-soft); stroke-width: 1; fill: none; opacity: 0.4; }
+
+    .type-nom { text-align: center; font-family: 'Cormorant Garamond', serif;
+                font-size: 1.4rem; color: var(--ink-title); margin: 0.4rem 0; font-weight: 500; }
+    .type-nom em { color: var(--gold); font-style: italic; }
+    .type-sub { text-align: center; font-family: 'Cormorant Garamond', serif;
+                font-style: italic; color: var(--ink-mute); margin-bottom: 1.4rem; }
+
+    .ck-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+    @media (max-width: 800px) { .ck-grid-2 { grid-template-columns: 1fr; } }
+
+    .ck-distrib { display: flex; gap: 0.5rem; justify-content: center;
+                  flex-wrap: wrap; margin: 1rem 0; }
+    .ck-distrib__cell {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 0.6rem 0.9rem; background: var(--paper);
+      border: 1px solid var(--line); border-radius: 12px;
+      min-width: 56px;
+    }
+    .ck-distrib__cell.has { border-color: var(--gold); background: linear-gradient(170deg, #FFF8DC, #FFFDF4); }
+    .ck-distrib__num { font-family: 'Cormorant Garamond', serif; font-weight: 500; color: var(--gold); font-size: 0.85rem; }
+    .ck-distrib__count { font-size: 1.4rem; font-weight: 600; color: var(--ink-title); }
+
+    .codes-list { margin-top: 1rem; }
+    .codes-row {
+      display: grid; grid-template-columns: 1fr 70px 100px 1fr 100px;
+      gap: 0.6rem; align-items: center;
+      padding: 0.8rem 0.9rem; background: var(--paper);
+      border: 1px solid var(--line); border-radius: 12px; margin-bottom: 0.5rem;
+      font-size: 0.92rem;
+    }
+    @media (max-width: 700px) {
+      .codes-row { grid-template-columns: 1fr 60px; }
+      .codes-row > *:nth-child(n+3) { display: none; }
+    }
+    .codes-row__prenom { font-weight: 500; color: var(--ink-title); }
+    .codes-row__type { color: var(--gold); font-weight: 600; }
+    .codes-row__date { color: var(--ink-mute); font-size: 0.85rem; font-style: italic; }
+    .codes-row__code {
+      font-family: 'Courier New', monospace; font-size: 0.78rem;
+      color: var(--ink-soft); user-select: all;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .codes-row__actions { display: flex; gap: 0.3rem; justify-content: flex-end; }
+    .codes-row__action {
+      padding: 0.3rem 0.5rem; background: transparent;
+      border: 1px solid var(--line); border-radius: 6px;
+      font-size: 0.78rem; cursor: pointer; color: var(--ink-soft);
+    }
+    .codes-row__action:hover { border-color: var(--gold); color: var(--gold); }
+
+    .code-result {
+      margin-top: 1rem; padding: 1rem; background: linear-gradient(170deg, #FFF8DC, #FFFDF4);
+      border: 1px solid var(--gold); border-radius: 12px; text-align: center;
+    }
+    .code-result__label { color: var(--gold); font-size: 0.78rem;
+      letter-spacing: 0.16em; text-transform: uppercase; font-weight: 600; }
+    .code-result__id { font-family: 'Courier New', monospace; font-size: 1.05rem;
+      color: var(--ink-title); user-select: all; margin: 0.5rem 0; word-break: break-all; }
+    .code-result__copy { background: var(--gold); color: #FFFDF8;
+      border: none; padding: 0.5rem 1.2rem; border-radius: 999px; cursor: pointer;
+      font-family: inherit; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+
+  <header class="ck-head">
+    <div class="ck-head__inner">
+      <div class="ck-head__brand">Cockpit · <em>Miroir intérieur</em></div>
+      <nav class="ck-head__nav">
+        <a href="./tableau-de-bord.html">Voie</a>
+        <a href="./miroir-cles.html" class="is-active">🪞 Miroir · Clés</a>
+        <a href="./miroir-demandes.html">Miroir · Demandes</a>
+        <a href="#" id="logout-link">Sortir</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="ck-main">
+    <div class="ck-container">
+
+      <h1 class="ck-h1">Le <em>miroir intérieur</em> — clés</h1>
+      <p class="ck-sub">Création et gestion des clés. Chacune est attribuée à un prénom et à un type d'ennéagramme.</p>
+
+      <!-- Distribution actuelle des types -->
+      <section class="ck-section">
+        <h2 class="ck-h2">Répartition des types</h2>
+        <div class="ck-distrib" id="distrib">— chargement —</div>
+      </section>
+
+      <div class="ck-grid-2">
+
+        <!-- CRÉATION -->
+        <section class="ck-section">
+          <h2 class="ck-h2">Créer une clé</h2>
+          <form id="create-form">
+            <div class="ck-field">
+              <label class="ck-field__label" for="prenom">Prénom</label>
+              <input class="ck-input" id="prenom" type="text" required maxlength="60" placeholder="Jeanne" />
+            </div>
+
+            <div class="ck-field">
+              <label class="ck-field__label">Type ennéagramme (cliquez sur le diagramme)</label>
+              <div class="ennea-picker">
+                <svg viewBox="0 0 280 280">
+                  <!-- Lignes intérieures -->
+                  <path class="ennea-lines" d="M 140 30 L 263 90 L 220 232 L 60 232 L 17 90 Z" />
+                  <path class="ennea-lines" d="M 140 30 L 220 232 M 263 90 L 60 232 M 17 90 L 220 232" />
+                  <path class="ennea-lines" d="M 17 90 L 263 90 L 140 240 Z" />
+                  <!-- 9 nodes -->
+                  <g class="ennea-picker__node" data-type="9"><circle cx="140" cy="30"  r="22"/><text x="140" y="36" text-anchor="middle">9</text></g>
+                  <g class="ennea-picker__node" data-type="1"><circle cx="221" cy="60"  r="22"/><text x="221" y="66" text-anchor="middle">1</text></g>
+                  <g class="ennea-picker__node" data-type="2"><circle cx="263" cy="140" r="22"/><text x="263" y="146" text-anchor="middle">2</text></g>
+                  <g class="ennea-picker__node" data-type="3"><circle cx="232" cy="220" r="22"/><text x="232" y="226" text-anchor="middle">3</text></g>
+                  <g class="ennea-picker__node" data-type="4"><circle cx="175" cy="258" r="22"/><text x="175" y="264" text-anchor="middle">4</text></g>
+                  <g class="ennea-picker__node" data-type="5"><circle cx="105" cy="258" r="22"/><text x="105" y="264" text-anchor="middle">5</text></g>
+                  <g class="ennea-picker__node" data-type="6"><circle cx="48"  cy="220" r="22"/><text x="48"  y="226" text-anchor="middle">6</text></g>
+                  <g class="ennea-picker__node" data-type="7"><circle cx="17"  cy="140" r="22"/><text x="17"  y="146" text-anchor="middle">7</text></g>
+                  <g class="ennea-picker__node" data-type="8"><circle cx="59"  cy="60"  r="22"/><text x="59"  y="66" text-anchor="middle">8</text></g>
+                </svg>
+              </div>
+              <p class="type-nom" id="type-nom">— choisissez un type —</p>
+              <p class="type-sub" id="type-sub"></p>
+            </div>
+
+            <div class="ck-field">
+              <label class="ck-field__label" for="langue">Langue</label>
+              <select class="ck-input" id="langue">
+                <option value="fr" selected>Français</option>
+                <option value="en">Anglais</option>
+              </select>
+            </div>
+
+            <div class="ck-actions">
+              <button type="submit" class="ck-btn" id="submit-btn">Créer la clé</button>
+            </div>
+
+            <div class="code-result" id="result" style="display:none">
+              <div class="code-result__label">Code à transmettre</div>
+              <div class="code-result__id" id="result-id"></div>
+              <button class="code-result__copy" id="copy-btn" type="button">Copier le code</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- LISTE -->
+        <section class="ck-section">
+          <h2 class="ck-h2">Clés existantes</h2>
+          <div class="codes-list" id="codes-list">— chargement —</div>
+        </section>
+
+      </div>
+
+    </div>
+  </main>
+
+  <script type="module" src="assets/js/miroir-cles.js?v=1"></script>
+</body>
+</html>
