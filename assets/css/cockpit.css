@@ -356,3 +356,118 @@ a:hover { text-decoration: underline; }
 }
 .ck-palette__mot:hover { border-color: var(--gold); color: var(--gold); }
 .ck-palette__mot em { color: var(--ink-mute); font-style: italic; font-size: 0.85em; margin-left: 0.3rem; }
+
+/* ============================================================
+   v2 — Corrections de lisibilité et responsive (miroir + pulsation)
+   ============================================================ */
+
+/* === Base : police de base plus grande === */
+body { font-size: 16px; }
+@media (min-width: 768px) { body { font-size: 17px; } }
+
+/* === Nav header : wrap propre sur mobile === */
+.ck-head__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem 1.1rem;
+  font-size: 0.96rem;
+  align-items: center;
+}
+.ck-head__nav a {
+  white-space: nowrap;
+  padding: 0.25rem 0;
+}
+.ck-head__nav a.is-miroir { color: var(--gold); font-weight: 600; }
+@media (max-width: 560px) {
+  .ck-head__inner { flex-direction: column; align-items: flex-start; gap: 0.8rem; }
+  .ck-head__nav { font-size: 0.92rem; gap: 0.5rem 1rem; }
+}
+
+/* === Stats / chiffres : pas trop petits === */
+.pulse-stat__lbl, .ck-distrib__num { font-size: 0.82rem !important; letter-spacing: 0.08em; }
+.pulse-stat__sub { font-size: 0.88rem !important; }
+.pulse-stat__num, .ck-distrib__count { font-size: 2rem !important; }
+.chart-legend { font-size: 0.82rem !important; }
+
+/* === Codes affichés : LISIBLES, c'est ce qu'on copie === */
+.codes-row__code {
+  font-size: 0.95rem !important;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.02em;
+}
+.key-result__id {
+  font-size: 1.05rem !important;
+  word-break: break-all;
+}
+.key-result__label { font-size: 0.82rem !important; }
+.key-result__hint { font-size: 0.95rem !important; }
+
+/* === Demande card : tailles relevées === */
+.demande-card__contact { font-size: 1rem !important; }
+.demande-card__date { font-size: 0.92rem !important; }
+.demande-card__statut { font-size: 0.82rem !important; }
+.demande-card__message { font-size: 1rem !important; }
+.demande-card__actions button { font-size: 0.95rem !important; padding: 0.65rem 1.2rem; }
+
+/* === Codes-row : empile proprement sur mobile au lieu de cacher === */
+@media (max-width: 700px) {
+  .codes-row {
+    grid-template-columns: 1fr !important;
+    grid-template-areas:
+      "head"
+      "code"
+      "actions";
+    gap: 0.5rem !important;
+    padding: 1rem !important;
+  }
+  .codes-row > *:nth-child(n+3) { display: block !important; }
+  .codes-row__prenom { font-size: 1.1rem; }
+  .codes-row__type {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    background: rgba(192,160,80,0.15);
+    border-radius: 999px;
+    margin-left: 0.5rem;
+  }
+  .codes-row__date { display: block; margin-top: 0.3rem; }
+  .codes-row__code {
+    padding: 0.5rem 0.7rem;
+    background: rgba(0,0,0,0.04);
+    border-radius: 8px;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+  }
+  .codes-row__actions { justify-content: flex-start !important; }
+}
+
+/* === Distribution des types : adaptation === */
+@media (max-width: 600px) {
+  .ck-distrib { gap: 0.4rem; }
+  .ck-distrib__cell { padding: 0.5rem 0.65rem; min-width: 50px; }
+  .ck-distrib__count { font-size: 1.5rem !important; }
+}
+
+/* === Diagramme ennéagramme picker : adaptation === */
+.ennea-picker { max-width: 280px; width: 100%; height: auto; aspect-ratio: 1; }
+
+/* === Pulse stats : meilleur sur mobile === */
+@media (max-width: 480px) {
+  .pulse-stats { grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+  .pulse-stat { padding: 0.85rem 0.6rem; }
+  .pulse-stat__num { font-size: 1.7rem !important; }
+}
+
+/* === Form fields un peu plus généreux === */
+.ck-input, .ck-input:not(textarea):not([type="checkbox"]) {
+  font-size: 1rem;
+  padding: 0.75rem 0.95rem;
+}
+.ck-btn { font-size: 1rem; padding: 0.8rem 1.7rem; }
+
+/* === Container mobile : moins de padding latéral pour gagner de la place === */
+@media (max-width: 480px) {
+  .ck-main { padding: var(--space-md) 0; }
+  .ck-container { padding: 0 var(--space-md); }
+  .ck-section { padding: var(--space-md) !important; }
+}
