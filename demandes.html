@@ -221,6 +221,9 @@
           ${d.motGraineAttribue ? `
             <div style="margin-top: var(--space-sm); font-family: var(--font-display); font-style: italic; color: var(--ink-mute);">
               → Clé créée : <strong style="color:var(--gold); font-style:normal;">${esc(d.prenom)} + ${esc(d.motGraineAttribue)}</strong>
+              ${d.messageEnvoye ? `<br>✓ Message envoyé <span style="color:#2E7D7A;">${relatif(d.messageEnvoyeLe)}</span>` : `
+                <br><button type="button" class="ck-btn ck-btn--small" data-action="marquer-envoye" data-id="${esc(d.id)}" style="margin-top:0.4rem;">✉ Marquer comme envoyé</button>
+              `}
             </div>
           ` : ''}
           <div class="ck-demande__accept-box" id="accept-${esc(d.id)}" hidden></div>
@@ -237,6 +240,15 @@
       });
       mount.querySelectorAll('[data-action="retrouver"]').forEach(b => {
         b.addEventListener('click', () => retrouverMotGraine(b.dataset.id));
+      });
+      mount.querySelectorAll('[data-action="marquer-envoye"]').forEach(b => {
+        b.addEventListener('click', async () => {
+          await updateDoc(doc(db, 'demandes', b.dataset.id), {
+            messageEnvoye: true,
+            messageEnvoyeLe: serverTimestamp()
+          });
+          await refresh();
+        });
       });
     }
 
