@@ -181,11 +181,13 @@ async function refresh() {
         <div class="codes-row__date">${date} · vu ${visite}</div>
         <div class="codes-row__code" title="${esc(c.id)}">${esc(c.id)}</div>
         <div class="codes-row__actions">
-          <button class="codes-row__action" data-act="copy">📋</button>
-          <button class="codes-row__action" data-act="toggle">${c.actif === false ? '↻' : '⏸'}</button>
-          <button class="codes-row__action" data-act="delete">🗑</button>
+          <button class="codes-row__action" data-act="edit" title="Modifier">✏️</button>
+          <button class="codes-row__action" data-act="copy" title="Copier le code">📋</button>
+          <button class="codes-row__action" data-act="toggle" title="${c.actif === false ? 'Réactiver' : 'Désactiver'}">${c.actif === false ? '↻' : '⏸'}</button>
+          <button class="codes-row__action" data-act="delete" title="Supprimer">🗑</button>
         </div>
       </div>
+      <div class="codes-edit" id="edit-${esc(c.id)}" hidden></div>
     `;
   }).join('');
 
@@ -201,6 +203,8 @@ async function refresh() {
           const code = codes.find(c => c.id === id);
           await updateDoc(doc(db, COL_CODES, id), { actif: code.actif === false });
           await refresh();
+        } else if (act === 'edit') {
+          openEditForm(id, codes);
         } else if (act === 'delete') {
           if (!confirm(`Supprimer définitivement la clé de ${row.querySelector('.codes-row__prenom').textContent.trim()} ?\n(Les entrées du carnet ne sont PAS effacées.)`)) return;
           await deleteDoc(doc(db, COL_CODES, id));
@@ -208,6 +212,119 @@ async function refresh() {
         }
       });
     });
+  });
+}
+
+// === ÉDITION : prénom + type + renommage du code (préserve l'historique) ===
+function openEditForm(id, codes) {
+  const code = codes.find(c => c.id === id);
+  if (!code) return;
+  const box = document.getElementById(`edit-${id}`);
+  if (!box) return;
+  // Fermer si déjà ouvert
+  if (!box.hidden) { box.hidden = true; box.innerHTML = ''; return; }
+  box.hidden = false;
+  box.innerHTML = `
+    <div style="background:linear-gradient(170deg,#FFFDF4,#F7F1DC);border:1.5px solid var(--gold);border-radius:14px;padding:1.2rem 1.3rem;margin:.5rem 0 1rem;">
+      <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--ink-title);margin:0 0 1rem;font-weight:500;">
+        Modifier la clé <em style="color:var(--gold);font-style:italic">${esc(code.prenom)}</em>
+      </h3>
+
+      <div class="ck-field">
+        <label class="ck-field__label" for="ed-prenom-${esc(id)}">Prénom</label>
+        <input class="ck-input" id="ed-prenom-${esc(id)}" type="text" value="${esc(code.prenom)}" maxlength="60">
+      </div>
+
+      <div class="ck-field">
+        <label class="ck-field__label" for="ed-type-${esc(id)}">Type ennéagramme</label>
+        <select class="ck-input" id="ed-type-${esc(id)}">
+          ${[1,2,3,4,5,6,7,8,9].map(t => `<option value="${t}" ${code.type==t?'selected':''}>Type ${t} — ${esc(TYPES_INFO[t].nom)}</option>`).join('')}
+        </select>
+      </div>
+
+      <div class="ck-field">
+        <label class="ck-field__label" for="ed-code-${esc(id)}">Code (l'identifiant que la personne saisit)</label>
+        <input class="ck-input" id="ed-code-${esc(id)}" type="text" value="${esc(id)}" maxlength="40">
+        <p style="font-size:.85rem;color:var(--ink-mute);font-style:italic;margin-top:.4rem;font-family:'Cormorant Garamond',serif;">
+          Si vous changez le code, l'historique du carnet sera <strong style="color:var(--gold);font-style:normal">automatiquement transféré</strong> sur le nouveau code (aucune entrée perdue).
+        </p>
+      </div>
+
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem;">
+        <button class="ck-btn ck-btn--gold" id="ed-save-${esc(id)}">Enregistrer</button>
+        <button class="ck-btn" id="ed-cancel-${esc(id)}">Annuler</button>
+        <span id="ed-status-${esc(id)}" style="font-style:italic;color:var(--ink-mute);font-family:'Cormorant Garamond',serif;align-self:center;"></span>
+      </div>
+    </div>
+  `;
+
+  document.getElementById(`ed-cancel-${id}`).addEventListener('click', () => {
+    box.hidden = true; box.innerHTML = '';
+  });
+
+  document.getElementById(`ed-save-${id}`).addEventListener('click', async () => {
+    const newPrenom = document.getElementById(`ed-prenom-${id}`).value.trim();
+    const newType   = parseInt(document.getElementById(`ed-type-${id}`).value, 10);
+    let newCode     = document.getElementById(`ed-code-${id}`).value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+    const status    = document.getElementById(`ed-status-${id}`);
+
+    if (!newPrenom) { alert('Le prénom est requis.'); return; }
+    if (!newType || newType < 1 || newType > 9) { alert('Type invalide.'); return; }
+    if (!newCode || newCode.length < 3) { alert('Le code doit faire au moins 3 caractères.'); return; }
+
+    const sameCode = (newCode === id);
+    status.textContent = 'Un instant…';
+
+    try {
+      if (sameCode) {
+        // Mise à jour simple
+        await updateDoc(doc(db, COL_CODES, id), {
+          prenom: newPrenom,
+          prenomNorm: normPrenom(newPrenom),
+          type: newType
+        });
+      } else {
+        // Renommage : créer le nouveau, copier l'historique, supprimer l'ancien
+        const exists = await getDoc(doc(db, COL_CODES, newCode));
+        if (exists.exists()) {
+          alert(`Le code "${newCode}" est déjà pris. Choisissez-en un autre.`);
+          status.textContent = '';
+          return;
+        }
+        status.textContent = 'Création du nouveau code…';
+        await setDoc(doc(db, COL_CODES, newCode), {
+          prenom: newPrenom,
+          prenomNorm: normPrenom(newPrenom),
+          type: newType,
+          langue: code.langue || 'fr',
+          actif: code.actif !== false,
+          creeLe: code.creeLe || null,
+          ancienCode: id  // trace pour mémoire
+        });
+
+        // Copier la sous-collection 'jours/' de l'ancien vers le nouveau
+        status.textContent = 'Transfert de l\'historique…';
+        const joursSnap = await getDocs(collection(db, 'carnets-type', id, 'jours'));
+        let copied = 0;
+        for (const jd of joursSnap.docs) {
+          await setDoc(doc(db, 'carnets-type', newCode, 'jours', jd.id), jd.data());
+          copied++;
+        }
+        status.textContent = `${copied} jour${copied>1?'s':''} transféré${copied>1?'s':''}…`;
+
+        // Supprimer les anciens documents : d'abord les jours, puis le code
+        for (const jd of joursSnap.docs) {
+          await deleteDoc(doc(db, 'carnets-type', id, 'jours', jd.id));
+        }
+        await deleteDoc(doc(db, COL_CODES, id));
+      }
+      status.textContent = '✓ enregistré';
+      setTimeout(async () => { await refresh(); }, 500);
+    } catch (err) {
+      console.error(err);
+      status.textContent = '';
+      alert('Erreur : ' + err.message);
+    }
   });
 }
 
