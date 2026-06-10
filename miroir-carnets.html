@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex,nofollow" />
-  <title>Carnets ouverts · Cockpit</title>
+  <title>Carnets ennéagramme · Cockpit</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -41,12 +41,23 @@
       color: #2a1f08;
       margin: 0 0 .25rem;
     }
+    .ck-carnet-card__type {
+      display: inline-block;
+      margin: 0 0 .5rem;
+      padding: .15rem .6rem;
+      background: #2a1f08;
+      color: #f5d77b;
+      border-radius: 999px;
+      font-size: .8rem;
+      font-weight: 500;
+    }
     .ck-carnet-card__anon {
       font-family: 'Courier New', monospace;
-      font-size: .78rem;
+      font-size: .72rem;
       color: #8a7a55;
-      letter-spacing: .04em;
+      letter-spacing: .02em;
       margin: 0 0 .55rem;
+      word-break: break-all;
     }
     .ck-carnet-card__when {
       font-family: 'Cormorant Garamond', serif;
@@ -124,8 +135,8 @@
     <div class="ck-head__inner">
       <div class="ck-head__brand">Cockpit</div>
       <nav class="ck-head__nav">
-        <a href="./carnets.html" class="is-active">Carnets ouverts</a>
-        <a href="./miroir-carnets.html">Carnets ennéagramme</a>
+        <a href="./carnets.html">Carnets ouverts</a>
+        <a href="./miroir-carnets.html" class="is-active">Carnets ennéagramme</a>
         <a href="./tableau-de-bord.html">Ancien (Voie/Miroir)</a>
         <a href="./suggestions.html">Suggestions</a>
       </nav>
@@ -133,8 +144,8 @@
   </header>
 
   <main class="ck-main">
-    <h1 class="ck-title">Carnets ouverts</h1>
-    <p class="ck-subtitle">Les personnes qui sont entrées dans le carnet sans mot de passe.</p>
+    <h1 class="ck-title">Carnets ennéagramme</h1>
+    <p class="ck-subtitle">Les personnes qui tiennent leur carnet « Le miroir intérieur » — sans code, par type.</p>
 
     <div class="ck-summary" id="summary-mount">
       <div class="ck-summary__card"><span class="ck-summary__n" id="s-total">·</span><span class="ck-summary__l">Total</span></div>
@@ -144,11 +155,12 @@
     </div>
 
     <div class="ck-tools">
-      <input type="search" id="search" placeholder="Filtrer par prénom ou id…" />
+      <input type="search" id="search" placeholder="Filtrer par prénom, type ou id…" />
       <select id="sort">
         <option value="recent">Dernière visite ↓</option>
         <option value="old">Première visite ↑</option>
         <option value="prenom">Prénom A→Z</option>
+        <option value="type">Type 1→9</option>
         <option value="jours">Plus de jours notés</option>
       </select>
     </div>
@@ -160,8 +172,10 @@
 
   <script type="module">
     import { db } from './assets/js/firebase-init.js';
-    import { collection, getDocs, query, collectionGroup }
+    import { collection, getDocs }
       from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    const TYPE_NOMS = {1:"L'Idéaliste",2:"Le Donneur",3:"Le Performeur",4:"L'Individualiste",5:"L'Observateur",6:"Le Loyaliste",7:"L'Enthousiaste",8:"Le Meneur",9:"Le Médiateur"};
 
     function esc(s) {
       return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -192,22 +206,15 @@
     (async () => {
       const mount = document.getElementById('carnets-mount');
       try {
-        // 1) Récupérer tous les carnets (collection 'carnets')
-        const snap = await getDocs(collection(db, 'carnets'));
-        const ids = [];
-        snap.forEach(d => ids.push(d.id));
+        // 1) Tous les carnets ennéagramme (collection 'carnets-type', le profil est sur le doc parent)
+        const snap = await getDocs(collection(db, 'carnets-type'));
 
-        // 2) Pour chacun, lire le meta (profil) + compter les jours
-        const carnets = await Promise.all(ids.map(async (id) => {
-          const profilSnap = await getDocs(collection(db, 'carnets', id, '_meta')).catch(() => null);
-          let profil = null;
-          if (profilSnap) profilSnap.forEach(d => { if (d.id === 'profil') profil = d.data(); });
-
-          const joursSnap = await getDocs(collection(db, 'carnets', id, 'jours')).catch(() => null);
-          let nbJours = 0;
-          let lastJour = null;
+        // 2) Pour chacun : profil (doc parent) + comptage des jours
+        const carnets = await Promise.all(snap.docs.map(async (d) => {
+          const profil = d.data() || {};
+          const joursSnap = await getDocs(collection(db, 'carnets-type', d.id, 'jours')).catch(() => null);
+          let nbJours = 0, lastJour = null, notéAujourdhui = false;
           const today = todayKey();
-          let notéAujourdhui = false;
           if (joursSnap) {
             joursSnap.forEach(jd => {
               nbJours++;
@@ -216,23 +223,20 @@
             });
           }
           return {
-            id,
-            prenom: profil?.prenom || '',
-            firstSeen: tsToDate(profil?.firstSeen),
-            lastSeen: tsToDate(profil?.lastSeen),
+            id: d.id,
+            prenom: profil.prenom || '',
+            type: profil.type || null,
+            firstSeen: tsToDate(profil.firstSeen),
+            lastSeen: tsToDate(profil.lastSeen),
             nbJours, lastJour, notéAujourdhui
           };
         }));
 
         // 3) Stats
-        const total = carnets.length;
-        const named = carnets.filter(c => c.prenom).length;
-        const today = carnets.filter(c => c.notéAujourdhui).length;
-        const week = carnets.filter(c => c.lastSeen && joursDepuis(c.lastSeen) <= 7).length;
-        document.getElementById('s-total').textContent = total;
-        document.getElementById('s-today').textContent = today;
-        document.getElementById('s-week').textContent = week;
-        document.getElementById('s-named').textContent = named;
+        document.getElementById('s-total').textContent = carnets.length;
+        document.getElementById('s-today').textContent = carnets.filter(c => c.notéAujourdhui).length;
+        document.getElementById('s-week').textContent = carnets.filter(c => c.lastSeen && joursDepuis(c.lastSeen) <= 7).length;
+        document.getElementById('s-named').textContent = carnets.filter(c => c.prenom).length;
 
         // 4) Rendu
         const searchInput = document.getElementById('search');
@@ -242,7 +246,11 @@
           const sort = sortSelect.value;
           let list = carnets.filter(c => {
             if (!q) return true;
-            return c.id.toLowerCase().includes(q) || c.prenom.toLowerCase().includes(q);
+            const nom = (TYPE_NOMS[c.type] || '').toLowerCase();
+            return c.id.toLowerCase().includes(q)
+                || c.prenom.toLowerCase().includes(q)
+                || ('type ' + (c.type || '')).includes(q)
+                || nom.includes(q);
           });
           if (sort === 'recent') {
             list.sort((a, b) => (b.lastSeen?.getTime() || 0) - (a.lastSeen?.getTime() || 0));
@@ -250,6 +258,8 @@
             list.sort((a, b) => (a.firstSeen?.getTime() || Infinity) - (b.firstSeen?.getTime() || Infinity));
           } else if (sort === 'prenom') {
             list.sort((a, b) => (a.prenom || 'zzz').localeCompare(b.prenom || 'zzz'));
+          } else if (sort === 'type') {
+            list.sort((a, b) => (a.type || 99) - (b.type || 99));
           } else if (sort === 'jours') {
             list.sort((a, b) => b.nbJours - a.nbJours);
           }
@@ -258,8 +268,9 @@
             return;
           }
           mount.innerHTML = list.map(c => `
-            <a class="ck-carnet-card" href="./carnet.html?id=${esc(c.id)}">
+            <a class="ck-carnet-card" href="./miroir-carnet.html?id=${esc(c.id)}">
               <p class="ck-carnet-card__prenom">${c.prenom ? esc(c.prenom) : '<em style="color:#8a7a55; font-style:italic; font-size:1rem;">(anonyme)</em>'}</p>
+              ${c.type ? `<span class="ck-carnet-card__type">Type ${esc(c.type)} — ${esc(TYPE_NOMS[c.type] || '')}</span>` : ''}
               <p class="ck-carnet-card__anon">${esc(c.id)}</p>
               <p class="ck-carnet-card__when">Dernière visite : ${relatif(c.lastSeen)}</p>
               <span class="ck-carnet-card__count">${c.nbJours} jour${c.nbJours > 1 ? 's' : ''} noté${c.nbJours > 1 ? 's' : ''}${c.notéAujourdhui ? ' · aujourd\'hui ✦' : ''}</span>

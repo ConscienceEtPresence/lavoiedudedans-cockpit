@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>Carnet ennéagramme · Cockpit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Amiri:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/cockpit.css?v=2" />
+  <style>
+    .ck-jour {
+      padding: 1.1rem 1.3rem;
+      background: #FFFDF8;
+      border: 1px solid var(--line, rgba(192,160,80,0.25));
+      border-left: 3px solid var(--gold, #c0a050);
+      border-radius: 10px;
+      margin: 1rem 0;
+    }
+    .ck-jour__date {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.2rem;
+      color: var(--ink-title, #2a1f08);
+      margin: 0 0 .6rem;
+    }
+    .ck-jour__bloc { margin: .55rem 0; }
+    .ck-jour__label {
+      display: block;
+      font-size: .74rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: #8a7028;
+      font-weight: 600;
+      margin-bottom: .2rem;
+    }
+    .ck-jour__corps {
+      margin: 0;
+      color: #2a1f08;
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: .98rem;
+      line-height: 1.55;
+    }
+    .ck-jour__corps em { color: #6a5520; font-style: italic; }
+    .ck-jour__chips {
+      display: flex; flex-wrap: wrap; gap: .3rem;
+      margin: .25rem 0;
+    }
+    .ck-jour__chip {
+      display: inline-block;
+      padding: .15rem .55rem;
+      background: rgba(192,160,80,0.15);
+      border-radius: 999px;
+      font-size: .82rem;
+      color: #4a3a18;
+    }
+    .ck-jour__chip--piege { background: rgba(196,68,68,0.12); color: #8a2a2a; }
+    .ck-instant {
+      padding: .5rem .7rem;
+      margin: .3rem 0;
+      background: rgba(192,160,80,0.06);
+      border-radius: 8px;
+    }
+    .ck-instant__h { font-size: .8rem; color: #6a5520; margin: 0 0 .2rem; }
+    .ck-profil {
+      padding: 1.2rem 1.4rem;
+      background: linear-gradient(170deg, #FFF8DC, #FFFDF4);
+      border: 1px solid var(--gold, #c0a050);
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+    }
+    .ck-profil__type {
+      display: inline-block;
+      margin: 0 0 .6rem;
+      padding: .2rem .7rem;
+      background: #2a1f08;
+      color: #f5d77b;
+      border-radius: 999px;
+      font-size: .9rem;
+    }
+    .ck-profil__line { margin: .3rem 0; color: #4a3a18; font-size: .95rem; }
+    .ck-profil__line strong { color: #2a1f08; }
+    .ck-back {
+      display: inline-block;
+      margin-bottom: 1rem;
+      color: var(--gold-deep, #8a7028);
+      text-decoration: none;
+      font-size: .92rem;
+      border-bottom: 1px dotted var(--gold-deep, #8a7028);
+    }
+  </style>
+</head>
+<body>
+  <header class="ck-head">
+    <div class="ck-head__inner">
+      <div class="ck-head__brand">Cockpit</div>
+      <nav class="ck-head__nav">
+        <a href="./miroir-carnets.html">Carnets ennéagramme</a>
+        <a href="./carnets.html">Carnets ouverts</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="ck-main">
+    <a href="./miroir-carnets.html" class="ck-back">← Tous les carnets ennéagramme</a>
+    <div id="carnet-mount">
+      <p style="text-align:center; color: var(--ink-mute, #8a7a55); font-style: italic; padding: 3rem;">Chargement…</p>
+    </div>
+  </main>
+
+  <script type="module">
+    import { db } from './assets/js/firebase-init.js';
+    import { collection, getDocs, doc, getDoc }
+      from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    const TYPE_NOMS = {1:"L'Idéaliste",2:"Le Donneur",3:"Le Performeur",4:"L'Individualiste",5:"L'Observateur",6:"Le Loyaliste",7:"L'Enthousiaste",8:"Le Meneur",9:"Le Médiateur"};
+    const REPRISE = { tenu:'Tenu', partiel:'En partie', paspu:'Pas pu', passu:'Je n\'ai pas su' };
+
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+    function tsToDate(ts) {
+      if (!ts) return null;
+      if (ts.toDate) return ts.toDate();
+      try { return new Date(ts); } catch { return null; }
+    }
+    function dateLisible(s) {
+      if (!s) return '';
+      const [y, m, d] = s.split('-');
+      const dt = new Date(parseInt(y), parseInt(m)-1, parseInt(d));
+      return dt.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    }
+    function bloc(label, html) {
+      return `<div class="ck-jour__bloc"><span class="ck-jour__label">${label}</span>${html}</div>`;
+    }
+    function corps(txt) { return `<p class="ck-jour__corps">${esc(txt)}</p>`; }
+    function chips(arr, cls) {
+      return `<div class="ck-jour__chips">${arr.map(c => `<span class="ck-jour__chip${cls ? ' ' + cls : ''}">${esc(c)}</span>`).join('')}</div>`;
+    }
+
+    const id = new URLSearchParams(location.search).get('id') || '';
+    const mount = document.getElementById('carnet-mount');
+
+    (async () => {
+      if (!id) {
+        mount.innerHTML = '<p style="text-align:center;">Aucun carnet sélectionné.</p>';
+        return;
+      }
+      try {
+        // 1) Profil (document parent carnets-type/{id})
+        const profilSnap = await getDoc(doc(db, 'carnets-type', id));
+        const profil = profilSnap.exists() ? profilSnap.data() : {};
+        const prenom = profil.prenom || '';
+        const type = profil.type || null;
+        const firstSeen = tsToDate(profil.firstSeen);
+        const lastSeen = tsToDate(profil.lastSeen);
+
+        // 2) Jours
+        const joursSnap = await getDocs(collection(db, 'carnets-type', id, 'jours'));
+        const jours = [];
+        joursSnap.forEach(d => jours.push({ date: d.id, data: d.data() }));
+        jours.sort((a, b) => b.date.localeCompare(a.date));
+
+        document.title = `${prenom || id} · Cockpit`;
+
+        const profilHTML = `
+          <div class="ck-profil">
+            <h1 style="margin:0 0 .5rem; font-family:'Cormorant Garamond',serif; font-size:1.8rem; color:#2a1f08;">
+              ${prenom ? esc(prenom) : '<em style="color:#8a7a55;">(anonyme)</em>'}
+            </h1>
+            ${type ? `<span class="ck-profil__type">Type ${esc(type)} — ${esc(TYPE_NOMS[type] || '')}</span>` : ''}
+            <p class="ck-profil__line"><strong>Identifiant :</strong> <code style="font-family:'Courier New',monospace; background:rgba(192,160,80,0.1); padding:.1rem .4rem; border-radius:4px; word-break:break-all;">${esc(id)}</code></p>
+            <p class="ck-profil__line"><strong>Première visite :</strong> ${firstSeen ? firstSeen.toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' }) : '—'}</p>
+            <p class="ck-profil__line"><strong>Dernière visite :</strong> ${lastSeen ? lastSeen.toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' }) : '—'}</p>
+            <p class="ck-profil__line"><strong>Jours notés :</strong> ${jours.length}</p>
+          </div>`;
+
+        // 3) Rendu d'un jour
+        const renderJour = (j) => {
+          const d = j.data || {};
+          const blocs = [];
+
+          if (d.reprise?.statut) {
+            blocs.push(bloc('Reprise du vœu d\'hier', corps(REPRISE[d.reprise.statut] || d.reprise.statut)));
+          }
+          if (Array.isArray(d.instants) && d.instants.length) {
+            const items = d.instants.map(it => {
+              const what = Array.isArray(it.what) && it.what.length ? chips(it.what) : '';
+              const mot = it.mot ? `<p class="ck-jour__corps"><em>${esc(it.mot)}</em></p>` : '';
+              const note = it.note ? corps(it.note) : '';
+              return `<div class="ck-instant"><p class="ck-instant__h">${esc(it.mode || 'instant')}</p>${what}${mot}${note}</div>`;
+            }).join('');
+            blocs.push(bloc(`Instants (${d.instants.length})`, items));
+          }
+          if (d.niveau) {
+            const n = d.niveau;
+            const ligne = [n.zone ? `Zone : ${n.zone}` : '', (n.niveau_riso != null) ? `Riso ${n.niveau_riso}` : ''].filter(Boolean).join(' · ');
+            let h = ligne ? corps(ligne) : '';
+            if (n.note) h += corps(n.note);
+            if (h) blocs.push(bloc('Mon niveau', h));
+          }
+          if (d.ego) {
+            const e = d.ego;
+            let h = '';
+            if (e.passions?.length) h += `<span class="ck-jour__label" style="color:#8a2a2a">Passions</span>` + chips(e.passions);
+            if (e.pieges?.length)   h += `<span class="ck-jour__label" style="color:#8a2a2a">Pièges</span>` + chips(e.pieges, 'ck-jour__chip--piege');
+            if (e.notes?.global)    h += corps(e.notes.global);
+            if (h) blocs.push(bloc('Mon ego', h));
+          }
+          if (d.essence) {
+            const e = d.essence;
+            let h = '';
+            if (e.moments?.length) h += chips(e.moments);
+            if (e.phrase)  h += corps(e.phrase);
+            if (e.appris)  h += `<p class="ck-jour__corps"><em>Appris :</em> ${esc(e.appris)}</p>`;
+            if (h) blocs.push(bloc('Mon essence', h));
+          }
+          if (d.moment) {
+            const m = d.moment;
+            let h = '';
+            if (m.type)   h += `<p class="ck-jour__corps"><em>${esc(m.type)}</em></p>`;
+            if (m.scene)  h += corps(m.scene);
+            if (m.remede) h += `<p class="ck-jour__corps"><em>Remède :</em> ${esc(m.remede)}</p>`;
+            if (m.repare) h += `<p class="ck-jour__corps"><em>Réparé :</em> ${esc(m.repare)}</p>`;
+            if (m.appris) h += `<p class="ck-jour__corps"><em>Appris :</em> ${esc(m.appris)}</p>`;
+            if (h) blocs.push(bloc('Un moment relu', h));
+          }
+          if (d.poser) {
+            const p = d.poser;
+            let h = '';
+            if (p.phrase) h += corps(p.phrase);
+            if (p.merci)  h += `<p class="ck-jour__corps"><em>Gratitude :</em> ${esc(p.merci)}</p>`;
+            if (p.vow)    h += `<p class="ck-jour__corps"><em>Vœu pour demain :</em> ${esc(p.vow)}</p>`;
+            if (h) blocs.push(bloc('Déposer le jour', h));
+          }
+
+          return `
+            <div class="ck-jour">
+              <h3 class="ck-jour__date">${dateLisible(j.date)}</h3>
+              ${blocs.length ? blocs.join('') : '<p style="color:#8a7a55; font-style:italic; margin:0;">Jour ouvert mais rien de noté.</p>'}
+            </div>`;
+        };
+
+        mount.innerHTML = `
+          ${profilHTML}
+          <h2 style="font-family:'Cormorant Garamond',serif; font-size:1.4rem; color:#4a3a18; margin:1.5rem 0 .5rem;">Les jours notés</h2>
+          ${jours.length ? jours.map(renderJour).join('') : '<p style="color:#8a7a55; font-style:italic;">Aucun jour noté pour l\'instant.</p>'}
+        `;
+      } catch (e) {
+        console.error(e);
+        mount.innerHTML = `<p style="color:#c44; text-align:center;">Erreur : ${esc(e.message || e)}</p>`;
+      }
+    })();
+  </script>
+</body>
+</html>
