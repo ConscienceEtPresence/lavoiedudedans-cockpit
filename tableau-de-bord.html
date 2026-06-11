@@ -5,611 +5,228 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex,nofollow" />
   <title>Tableau de bord · Cockpit</title>
-
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Amiri:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/cockpit.css" />
-
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/cockpit.css?v=2" />
   <style>
-    .ck-lampes {
-      display: flex; flex-wrap: wrap; gap: 0.7rem; justify-content: center;
-      padding: var(--space-md) 0;
+    :root{
+      --tb-paper:#FFFDF8; --tb-gold:#c0a050; --tb-ink:#2a1f08; --tb-ink2:#4a3a18;
+      --tb-mute:#8a7a55; --tb-line:rgba(192,160,80,0.25);
+      --tb-miroir:#6d5ab8; --tb-voie:#1f8f6f;
     }
-    .ck-lampe {
-      width: 48px; height: 64px;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 0.2rem;
-      border-radius: 8px;
-      background: var(--paper);
-      border: 1px solid var(--line);
-      position: relative;
-      transition: all 0.2s;
-      cursor: default;
-    }
-    .ck-lampe__icon {
-      font-size: 1.4rem; line-height: 1;
-    }
-    .ck-lampe__name {
-      font-family: var(--font-sans); font-size: 0.62rem;
-      color: var(--ink-mute);
-      max-width: 100%; overflow: hidden; text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .ck-lampe--allumee {
-      background: linear-gradient(170deg, #FFF8DC, #F4D77A);
-      border-color: var(--gold);
-      box-shadow: 0 0 18px rgba(192,160,80,0.35);
-    }
-    .ck-lampe--allumee .ck-lampe__name { color: var(--ink-title); }
-    .ck-lampe--tiede {
-      background: linear-gradient(170deg, #FFFDF4, #F4EAD0);
-      border-color: var(--gold-soft);
-    }
-    .ck-lampe--veilleuse {
-      opacity: 0.6;
-    }
-    .ck-lampe--eteinte {
-      opacity: 0.35;
-      background: var(--paper-warm);
-    }
-    .ck-lampes-legende {
-      display: flex; gap: 1.2rem; justify-content: center;
-      margin-top: var(--space-md);
-      font-family: var(--font-display); font-style: italic;
-      font-size: 0.85rem; color: var(--ink-mute);
-    }
-    .ck-activity { display: flex; flex-direction: column; gap: 0.5rem; }
-    .ck-activity__item {
-      display: flex; gap: 0.6rem; align-items: baseline;
-      padding: 0.5rem 0;
-      border-bottom: 1px dashed var(--line);
-      font-family: var(--font-display); font-size: 0.98rem;
-    }
-    .ck-activity__item:last-child { border-bottom: none; }
-    .ck-activity__when {
-      font-family: var(--font-sans); font-size: 0.72rem;
-      color: var(--ink-mute); min-width: 6rem;
-    }
-    .ck-activity__what { color: var(--ink-soft); }
-    .ck-activity__what strong { color: var(--ink-title); font-weight: 500; }
-    .ck-activity__what em { color: var(--gold); font-style: italic; }
+    body{background:#fbf7ec}
+    .tb-wrap{max-width:1000px;margin:0 auto;padding:1.5rem 1.2rem 4rem}
+    .tb-h1{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:500;color:var(--tb-ink);margin:.2rem 0 .2rem}
+    .tb-h1 em{color:var(--tb-gold);font-style:italic}
+    .tb-sub{color:var(--tb-mute);font-size:1rem;margin:0 0 1.4rem;max-width:46rem;line-height:1.5}
+    .tb-bar{display:flex;flex-wrap:wrap;gap:1.2rem;align-items:center;margin:0 0 1.6rem;font-size:.95rem}
+    .tb-leg{display:flex;align-items:center;gap:.5rem;color:var(--tb-ink2)}
+    .tb-dot{width:13px;height:13px;border-radius:4px;display:inline-block}
+
+    .tb-alert{display:flex;align-items:center;gap:.9rem;padding:1.1rem 1.3rem;margin:0 0 1.6rem;
+      background:linear-gradient(170deg,#FFF6D8,#FFFCEF);border:1px solid var(--tb-gold);border-radius:14px}
+    .tb-alert__icon{font-size:1.6rem;line-height:1}
+    .tb-alert__txt{color:var(--tb-ink);font-size:1.05rem}
+    .tb-alert__txt strong{color:#7a5a08}
+    .tb-alert--mute{background:#FFFDF8;border-color:var(--tb-line);color:var(--tb-mute)}
+
+    .tb-sites{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.1rem;margin:0 0 2rem}
+    .tb-site{background:var(--tb-paper);border:1px solid var(--tb-line);border-radius:16px;padding:1.3rem 1.4rem;border-top:4px solid var(--c)}
+    .tb-site__name{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:500;color:var(--tb-ink);margin:0 0 1rem;display:flex;align-items:center;gap:.55rem}
+    .tb-site__name .tb-dot{width:14px;height:14px}
+    .tb-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem}
+    .tb-kpi__n{font-family:'Cormorant Garamond',serif;font-size:2.3rem;font-weight:500;color:var(--c);line-height:1;display:block}
+    .tb-kpi__l{font-size:.8rem;color:var(--tb-mute);margin-top:.35rem;line-height:1.25}
+    .tb-site__row2{display:grid;grid-template-columns:repeat(2,1fr);gap:.8rem;margin-top:1rem;padding-top:1rem;border-top:1px dashed var(--tb-line)}
+    .tb-mini__n{font-size:1.5rem;font-weight:500;color:var(--tb-ink);font-family:'Cormorant Garamond',serif}
+    .tb-mini__l{font-size:.8rem;color:var(--tb-mute)}
+
+    .tb-block{background:var(--tb-paper);border:1px solid var(--tb-line);border-radius:16px;padding:1.3rem 1.4rem;margin:0 0 1.6rem}
+    .tb-block__h{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:500;color:var(--tb-ink2);margin:0 0 1rem}
+    .tb-chart{position:relative;width:100%;height:320px}
+
+    .tb-pages{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.6rem}
+    .tb-pages__site{font-weight:600;color:var(--c);margin:0 0 .7rem;font-size:.95rem;display:flex;align-items:center;gap:.5rem}
+    .tb-prow{display:flex;align-items:center;gap:.7rem;margin:.45rem 0}
+    .tb-prow__lab{flex:0 0 42%;font-size:.86rem;color:var(--tb-ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .tb-prow__track{flex:1;height:14px;background:rgba(0,0,0,0.04);border-radius:7px;overflow:hidden}
+    .tb-prow__fill{height:100%;background:var(--c);border-radius:7px}
+    .tb-prow__n{flex:0 0 auto;font-size:.86rem;color:var(--tb-mute);min-width:2.5rem;text-align:right}
+    .tb-empty{color:var(--tb-mute);font-style:italic;font-family:'Cormorant Garamond',serif}
+    .tb-state{text-align:center;padding:3rem 1rem;color:var(--tb-mute);font-family:'Cormorant Garamond',serif;font-style:italic}
   </style>
 </head>
 <body>
-
   <header class="ck-head">
     <div class="ck-head__inner">
-      <div class="ck-head__brand">Cockpit <span class="ck-section-tag ck-section-tag--voie">📿 Voie</span></div>
+      <div class="ck-head__brand">Cockpit · <em>Tableau de bord</em></div>
       <nav class="ck-head__nav">
-        <div class="nav-group nav-group--voie">
-          <span class="nav-group__label">📿 Voie du dedans</span>
-          <a href="./tableau-de-bord.html" class="is-active">Tableau</a>
-          <a href="./demandes.html">Demandes</a>
-          <a href="./codes.html">Clés</a>
-          <a href="./suggestions.html">Suggestions</a>
-          <a href="./souffle.html">Souffle</a>
-          <a href="./creer-cle.html">Créer</a>
-        </div>
-        <div class="nav-group nav-group--miroir">
-          <span class="nav-group__label">🪞 Miroir</span>
-          <a href="./miroir-cles.html">Clés</a>
-          <a href="./miroir-demandes.html">Demandes</a>
-        </div>
-        <div class="nav-group nav-group--transverse">
-          <span class="nav-group__label">🫧 Transverse</span>
-          <a href="./pulsation.html">Pulsation</a>
-          <a href="#" id="logout-link">Sortir</a>
-        </div>
+        <a href="./carnets.html">Carnets du dedans</a>
+        <a href="./miroir-carnets.html">Carnets ennéagramme</a>
+        <a href="./suggestions.html">Suggestions</a>
       </nav>
     </div>
   </header>
 
-  <main class="ck-main">
-    <h1 class="ck-title" id="hello-title">Bonjour…</h1>
-    <p class="ck-subtitle" id="hello-sub">…</p>
+  <main class="tb-wrap">
+    <h1 class="tb-h1">Tableau de <em>bord</em></h1>
+    <p class="tb-sub">Trafic et carnets des deux sites, réunis et distingués. Données anonymes — juste des compteurs.</p>
 
-    <!-- 🔑 Mes accès personnels — pour ne pas oublier mes codes -->
-    <section class="my-creds">
-      <h2 class="my-creds__title">🔑 Mes accès personnels</h2>
-      <p class="my-creds__sub">Vos identifiants pour tester ou utiliser les carnets vous-même.</p>
-      <div class="my-creds__grid">
-        <div class="my-creds__card my-creds__card--voie">
-          <h3>📿 La voie du dedans</h3>
-          <div id="my-voie">— chargement —</div>
-        </div>
-        <div class="my-creds__card my-creds__card--miroir">
-          <h3>🪞 Le miroir intérieur</h3>
-          <div id="my-miroir">— chargement —</div>
-        </div>
-      </div>
-    </section>
-
-    <style>
-      .my-creds {
-        margin: 0 0 var(--space-xl);
-        padding: 1.3rem 1.5rem;
-        background: linear-gradient(170deg, #FFF8DC, #FFFDF4);
-        border: 1px solid var(--gold);
-        border-radius: 18px;
-        box-shadow: 0 8px 24px rgba(192, 160, 80, 0.12);
-      }
-      .my-creds__title {
-        font-family: 'Cormorant Garamond', serif;
-        font-size: 1.3rem; font-weight: 500;
-        color: var(--ink-title); margin: 0 0 0.3rem;
-      }
-      .my-creds__sub {
-        font-family: 'Cormorant Garamond', serif; font-style: italic;
-        color: var(--ink-soft); margin: 0 0 1.1rem; font-size: 0.96rem;
-      }
-      .my-creds__grid {
-        display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
-      }
-      @media (max-width: 700px) {
-        .my-creds__grid { grid-template-columns: 1fr; }
-      }
-      .my-creds__card {
-        background: #FFFDF8; border: 1px solid var(--line);
-        border-radius: 12px; padding: 1rem 1.1rem;
-      }
-      .my-creds__card--voie   { border-top: 3px solid #B8860B; }
-      .my-creds__card--miroir { border-top: 3px solid var(--gold); }
-      .my-creds__card h3 {
-        font-family: 'Cormorant Garamond', serif; font-size: 1.1rem;
-        font-weight: 500; color: var(--ink-title); margin: 0 0 .7rem;
-      }
-      .cred-line {
-        display: flex; justify-content: space-between; align-items: center;
-        margin: 0.4rem 0; gap: 0.5rem;
-      }
-      .cred-label {
-        font-family: var(--font-sans); font-size: 0.78rem;
-        letter-spacing: 0.08em; text-transform: uppercase;
-        color: var(--ink-mute);
-      }
-      .cred-value {
-        font-family: 'Courier New', monospace; font-size: 0.95rem;
-        color: var(--ink-title); user-select: all;
-        background: rgba(192, 160, 80, 0.08); padding: 0.3rem 0.6rem;
-        border-radius: 6px; word-break: break-all;
-        flex: 1; text-align: right;
-      }
-      .cred-value--prenom { font-family: 'Cormorant Garamond', serif; font-size: 1.05rem; }
-      .cred-copy {
-        background: var(--gold); color: #FFFDF8; border: none;
-        padding: 0.35rem 0.7rem; border-radius: 999px;
-        font-size: 0.8rem; cursor: pointer;
-        flex-shrink: 0;
-      }
-      .cred-copy:hover { background: #B88820; }
-      .cred-empty {
-        font-family: 'Cormorant Garamond', serif; font-style: italic;
-        color: var(--ink-mute); font-size: 0.95rem;
-      }
-      .cred-empty a {
-        color: var(--gold); font-weight: 600; text-decoration: none;
-      }
-      .cred-multi {
-        margin-top: 0.6rem; padding-top: 0.5rem;
-        border-top: 1px dashed var(--line);
-      }
-      .cred-multi__hint {
-        font-size: 0.78rem; color: var(--ink-mute);
-        font-style: italic; margin-top: 0.3rem;
-      }
-    </style>
-
-    <!-- Deux blocs distincts : Voie / Miroir -->
-    <div class="dash-split">
-
-      <!-- 📿 LA VOIE DU DEDANS -->
-      <div class="dash-block dash-block--voie">
-        <h2 class="dash-block__title"><span class="dash-block__ico">📿</span> La voie du dedans <em>(soufi)</em></h2>
-        <div class="dash-stats-row">
-          <div class="dash-stat"><span class="dash-stat__n" id="stat-codes">·</span><span class="dash-stat__l">Clés actives</span></div>
-          <div class="dash-stat"><span class="dash-stat__n" id="stat-demandes">·</span><span class="dash-stat__l">Demandes</span></div>
-          <div class="dash-stat"><span class="dash-stat__n" id="stat-suggestions">·</span><span class="dash-stat__l">Suggestions</span></div>
-          <div class="dash-stat"><span class="dash-stat__n" id="stat-aujourdhui">·</span><span class="dash-stat__l">Notés aujourd'hui</span></div>
-        </div>
-        <div class="dash-actions">
-          <a href="./creer-cle.html" class="ck-btn ck-btn--gold">✦ Créer une clé</a>
-          <a href="./demandes.html" class="ck-btn">📨 Demandes</a>
-          <a href="./codes.html" class="ck-btn">🔑 Toutes les clés</a>
-          <a href="./souffle.html" class="ck-btn">🌬 Souffle</a>
-        </div>
-      </div>
-
-      <!-- 🪞 LE MIROIR INTÉRIEUR -->
-      <div class="dash-block dash-block--miroir">
-        <h2 class="dash-block__title"><span class="dash-block__ico">🪞</span> Le miroir intérieur <em>(ennéagramme)</em></h2>
-        <div class="dash-stats-row">
-          <div class="dash-stat"><span class="dash-stat__n" id="stat-mi-codes">·</span><span class="dash-stat__l">Clés actives</span></div>
-          <div class="dash-stat"><span class="dash-stat__n" id="stat-mi-demandes">·</span><span class="dash-stat__l">Demandes</span></div>
-          <div class="dash-stat"><span class="dash-stat__n" id="stat-mi-aujourdhui">·</span><span class="dash-stat__l">Notés aujourd'hui</span></div>
-          <div class="dash-stat"><span class="dash-stat__n" id="stat-mi-types">·</span><span class="dash-stat__l">Types représentés</span></div>
-        </div>
-        <div class="dash-actions">
-          <a href="./miroir-cles.html" class="ck-btn ck-btn--gold">✦ Créer une clé miroir</a>
-          <a href="./miroir-demandes.html" class="ck-btn">📨 Demandes miroir</a>
-          <a href="./miroir-cles.html" class="ck-btn">🪞 Toutes les clés miroir</a>
-        </div>
-      </div>
-
+    <div class="tb-bar">
+      <span class="tb-leg"><span class="tb-dot" style="background:var(--tb-miroir)"></span>Le miroir intérieur · ennéagramme</span>
+      <span class="tb-leg"><span class="tb-dot" style="background:var(--tb-voie)"></span>La voie du dedans</span>
+      <span style="margin-left:auto;color:var(--tb-mute);font-size:.85rem" id="tb-updated"></span>
     </div>
 
-    <style>
-      .dash-split {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1.4rem;
-        margin: 0 0 var(--space-xl);
-      }
-      @media (max-width: 900px) { .dash-split { grid-template-columns: 1fr; } }
-      .dash-block {
-        padding: 1.3rem 1.4rem 1.4rem;
-        border-radius: 18px;
-        border: 1px solid var(--line);
-        background: linear-gradient(170deg, #FFFDF4, var(--paper));
-      }
-      .dash-block--voie   { border-top: 4px solid #B8860B; }
-      .dash-block--miroir { border-top: 4px solid var(--gold); }
-      .dash-block__title {
-        font-family: 'Cormorant Garamond', serif;
-        font-size: 1.35rem;
-        font-weight: 500;
-        margin: 0 0 1rem;
-        color: var(--ink-title);
-        display: flex; align-items: center; gap: 0.5rem;
-      }
-      .dash-block__title em {
-        color: var(--ink-mute); font-style: italic;
-        font-size: 0.82rem; font-weight: 400;
-        margin-left: 0.3rem;
-      }
-      .dash-block__ico { font-size: 1.6rem; }
-      .dash-stats-row {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 0.55rem;
-        margin-bottom: 1rem;
-      }
-      @media (max-width: 520px) {
-        .dash-stats-row { grid-template-columns: repeat(2, 1fr); }
-      }
-      .dash-stat {
-        background: var(--paper); border: 1px solid var(--line);
-        border-radius: 10px; padding: 0.7rem 0.5rem;
-        text-align: center;
-      }
-      .dash-stat__n {
-        display: block;
-        font-family: 'Cormorant Garamond', serif;
-        font-size: 1.7rem; color: var(--gold); font-weight: 500;
-        line-height: 1;
-      }
-      .dash-stat__l {
-        display: block;
-        font-size: 0.78rem; letter-spacing: 0.06em;
-        color: var(--ink-mute); margin-top: 0.3rem;
-      }
-      .dash-actions {
-        display: flex; flex-wrap: wrap; gap: 0.5rem;
-      }
-      .dash-actions .ck-btn {
-        font-size: 0.92rem !important; padding: 0.55rem 1rem !important;
-      }
-    </style>
-
-
-    <section class="ck-section">
-      <h2 class="ck-section__title">Le mur des lampes</h2>
-      <p style="margin: 0 0 var(--space-md); color: var(--ink-soft); font-style: italic;">
-        Chaque lampe est une personne. Allumée si elle est venue aujourd'hui, tiède pour cette semaine, en veille pour ce mois, éteinte si elle s'est éloignée.
-      </p>
-      <div class="ck-lampes" id="lampes-mount">
-        <div style="font-family: var(--font-display); color: var(--ink-mute); font-style: italic;">…</div>
-      </div>
-      <div class="ck-lampes-legende">
-        <span>🪔 allumée — aujourd'hui</span>
-        <span>tiède — cette semaine</span>
-        <span>veille — ce mois</span>
-        <span>éteinte — plus loin</span>
-      </div>
-    </section>
-
-    <section class="ck-section">
-      <h2 class="ck-section__title">Activité récente</h2>
-      <div class="ck-activity" id="activity-mount">
-        <div style="font-family: var(--font-display); color: var(--ink-mute); font-style: italic;">…</div>
-      </div>
-    </section>
+    <div id="tb-alert"></div>
+    <div id="tb-sites" class="tb-sites"><div class="tb-state">Chargement…</div></div>
+    <div class="tb-block">
+      <h2 class="tb-block__h">Visiteurs uniques · 30 derniers jours</h2>
+      <div class="tb-chart"><canvas id="tb-visites"></canvas></div>
+    </div>
+    <div class="tb-block">
+      <h2 class="tb-block__h">Pages les plus visitées · 30 jours</h2>
+      <div id="tb-pages" class="tb-pages"><div class="tb-empty">…</div></div>
+    </div>
   </main>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
   <script type="module">
     import { db } from './assets/js/firebase-init.js';
-    import { requireAdmin, logout } from './assets/js/auth-guard.js';
-    import { collection, getDocs, query, where, orderBy, limit }
+    import { collection, getDocs, doc, getDoc }
       from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    document.getElementById('logout-link').addEventListener('click', (e) => {
-      e.preventDefault(); logout();
-    });
+    const SITES = [
+      { id:'lemiroirinterieur', nom:'Le miroir intérieur', color:'#6d5ab8', col:'carnets-type', dash:false },
+      { id:'lavoiedudedans',    nom:'La voie du dedans',    color:'#1f8f6f', col:'carnets',      dash:true  }
+    ];
+    const DAYS = 30;
+    const LASTVISIT_KEY = 'ck_db_lastvisit';
 
-    function joursDepuis(date) {
-      return Math.floor((Date.now() - date.getTime()) / (1000*60*60*24));
-    }
-    function heuresDepuis(date) {
-      return Math.floor((Date.now() - date.getTime()) / (1000*60*60));
-    }
-    function relatif(d) {
-      const h = heuresDepuis(d);
-      const j = joursDepuis(d);
-      if (h < 1) return "à l'instant";
-      if (h < 24) return `il y a ${h}h`;
-      if (j === 1) return 'hier';
-      if (j < 30) return `il y a ${j} jours`;
-      return d.toLocaleDateString('fr-FR', { day:'numeric', month:'long' });
-    }
-    function esc(s) {
-      return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    }
-    function salut() {
-      const h = new Date().getHours();
-      if (h < 6)  return { titre: 'Bonne nuit', sub: 'Tout est calme. La lampe veille avec vous.' };
-      if (h < 11) return { titre: 'Bonjour',    sub: "L'aube est un commencement." };
-      if (h < 14) return { titre: 'Bonjour',    sub: 'Le jour est haut. Le carnet vous suit.' };
-      if (h < 18) return { titre: 'Bonjour',    sub: "L'après-midi se déploie." };
-      if (h < 22) return { titre: 'Bonsoir',    sub: 'Le soir vient. Quel est le mouvement du carnet aujourd\'hui ?' };
-      return { titre: 'Bonsoir', sub: 'La nuit est avancée. Veillez doucement.' };
-    }
-    function dateKey(daysAgo) {
-      const d = new Date();
-      d.setDate(d.getDate() - daysAgo);
-      const y = d.getFullYear();
-      const m = String(d.getMonth()+1).padStart(2, '0');
-      const j = String(d.getDate()).padStart(2, '0');
-      return `${y}-${m}-${j}`;
-    }
+    const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const dKey = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const tsToMs = ts => ts && ts.toMillis ? ts.toMillis() : (ts ? +new Date(ts) : 0);
+    function prettyPath(p){ if(p==='home') return 'Accueil'; return '/' + p.replace(/_/g,'/'); }
 
-    function classeLampe(daysSince) {
-      if (daysSince === null) return 'ck-lampe--eteinte';
-      if (daysSince <= 1) return 'ck-lampe--allumee';
-      if (daysSince <= 7) return 'ck-lampe--tiede';
-      if (daysSince <= 30) return 'ck-lampe--veilleuse';
-      return 'ck-lampe--eteinte';
-    }
-
-    requireAdmin(async (user) => {
-      // salutation
-      const s = salut();
-      const prenom = user.displayName?.split(' ')[0] || 'Brahms';
-      document.getElementById('hello-title').innerHTML = `${s.titre}, <em style="color:var(--gold); font-style:italic;">${esc(prenom)}</em>.`;
-      document.getElementById('hello-sub').textContent = s.sub;
-
-      // === Charger MES accès personnels (Brahms) ===
-      const MY_PRENOM_NORM = 'brahms';
-      function normPrenom(s) {
-        return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+    async function loadAnalytics(siteId){
+      const snap = await getDocs(collection(db,'analytics',siteId,'jours'));
+      const byDate = {}; snap.forEach(s => byDate[s.id] = s.data());
+      const labels=[], uniques=[], pageviews=[]; let pv30=0,u30=0,pv7=0,u7=0,pvToday=0,uToday=0;
+      const pages={};
+      const today = dKey(new Date());
+      for(let i=DAYS-1;i>=0;i--){
+        const d=new Date(); d.setDate(d.getDate()-i); const k=dKey(d);
+        const day=byDate[k]||{}; const pv=day.pageviews||0, u=day.uniques||0;
+        labels.push(`${d.getDate()}/${d.getMonth()+1}`); uniques.push(u); pageviews.push(pv);
+        pv30+=pv; u30+=u; if(i<7){pv7+=pv;u7+=u;} if(k===today){pvToday=pv;uToday=u;}
+        if(day.pages && typeof day.pages==='object'){ for(const [p,c] of Object.entries(day.pages)) pages[p]=(pages[p]||0)+c; }
       }
-      function escAttr(s) { return String(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
-      function attachCopy(scope) {
-        scope.querySelectorAll('.cred-copy').forEach(b => {
-          b.addEventListener('click', async () => {
-            try {
-              await navigator.clipboard.writeText(b.dataset.value);
-              const orig = b.textContent;
-              b.textContent = '✓';
-              setTimeout(() => b.textContent = orig, 1500);
-            } catch {
-              alert('Sélectionnez la valeur pour la copier.');
-            }
-          });
-        });
+      const topPages = Object.entries(pages).sort((a,b)=>b[1]-a[1]).slice(0,6);
+      return { labels, uniques, pageviews, pv30,u30,pv7,u7,pvToday,uToday, topPages };
+    }
+
+    async function loadCarnets(col){
+      const snap = await getDocs(collection(db,col));
+      const now = Date.now(), weekAgo = now-7*86400000;
+      const lastVisit = +(localStorage.getItem(LASTVISIT_KEY)||0);
+      let total=0, active7=0; const nouveaux=[];
+      for(const d of snap.docs){
+        let prof = d.data()||{};
+        if(prof.firstSeen===undefined && prof.lastSeen===undefined){
+          try{ const m = await getDoc(doc(db,col,d.id,'_meta','profil')); if(m.exists()) prof=m.data(); }catch(e){}
+        }
+        total++;
+        const last = tsToMs(prof.lastSeen); const first = tsToMs(prof.firstSeen);
+        if(last && last>=weekAgo) active7++;
+        if(lastVisit && first && first>lastVisit) nouveaux.push({ prenom: prof.prenom||null, type: prof.type||null, first });
+      }
+      return { total, active7, nouveaux };
+    }
+
+    (async function init(){
+      let analytics={}, carnets={}, analyticsOk=true;
+      await Promise.all(SITES.map(async s=>{
+        try{ analytics[s.id] = await loadAnalytics(s.id); }
+        catch(e){ analyticsOk=false; analytics[s.id]=null; }
+        try{ carnets[s.id] = await loadCarnets(s.col); }
+        catch(e){ carnets[s.id] = { total:0, active7:0, nouveaux:[] }; }
+      }));
+
+      const totalNouveaux = SITES.reduce((n,s)=>n+(carnets[s.id]?.nouveaux.length||0),0);
+      const lastVisit = +(localStorage.getItem(LASTVISIT_KEY)||0);
+      const alertEl = document.getElementById('tb-alert');
+      if(totalNouveaux>0){
+        const detail = SITES.filter(s=>carnets[s.id]?.nouveaux.length)
+          .map(s=>`${carnets[s.id].nouveaux.length} sur ${s.nom}`).join(' · ');
+        alertEl.innerHTML = `<div class="tb-alert"><span class="tb-alert__icon">🔔</span>
+          <span class="tb-alert__txt"><strong>${totalNouveaux} nouveau${totalNouveaux>1?'x':''} carnet${totalNouveaux>1?'s':''}</strong> depuis votre dernière visite — ${esc(detail)}.</span></div>`;
+      } else if(lastVisit){
+        alertEl.innerHTML = `<div class="tb-alert tb-alert--mute"><span class="tb-alert__icon">🫧</span>
+          <span>Aucun nouveau carnet depuis votre dernière visite.</span></div>`;
       }
 
-      try {
-        // chargement Voie + Miroir en parallèle
-        const [
-          codesSnap, demandesSnap, suggestionsSnap,
-          miCodesSnap, miDemandesSnap
-        ] = await Promise.all([
-          getDocs(collection(db, 'codes')),
-          getDocs(query(collection(db, 'demandes'), where('statut', '==', 'en-attente'))),
-          getDocs(query(collection(db, 'suggestions'), where('statut', '==', 'neuve'))),
-          getDocs(collection(db, 'codes-type')),
-          getDocs(query(collection(db, 'demandes-type'), where('statut', '==', 'en-attente')))
-        ]);
+      const sitesEl = document.getElementById('tb-sites');
+      sitesEl.innerHTML = SITES.map(s=>{
+        const a = analytics[s.id], c = carnets[s.id]||{total:0,active7:0};
+        const vis = a ? `<span class="tb-kpi__n">${a.u30}</span><div class="tb-kpi__l">visiteurs · 30 j</div>`
+                      : `<span class="tb-kpi__n" style="opacity:.4">—</span><div class="tb-kpi__l">visites à activer</div>`;
+        const u7  = a ? a.u7  : '—'; const pvT = a ? a.pvToday : '—';
+        return `<div class="tb-site" style="--c:${s.color}">
+          <h3 class="tb-site__name"><span class="tb-dot" style="background:${s.color}"></span>${esc(s.nom)}</h3>
+          <div class="tb-kpis">
+            <div>${vis}</div>
+            <div><span class="tb-kpi__n">${u7}</span><div class="tb-kpi__l">visiteurs · 7 j</div></div>
+            <div><span class="tb-kpi__n">${pvT}</span><div class="tb-kpi__l">pages vues · auj.</div></div>
+          </div>
+          <div class="tb-site__row2">
+            <div><div class="tb-mini__n">${c.total}</div><div class="tb-mini__l">carnets tenus</div></div>
+            <div><div class="tb-mini__n">${c.active7}</div><div class="tb-mini__l">actifs · 7 j</div></div>
+          </div>
+        </div>`;
+      }).join('');
 
-        // === MES ACCÈS — La voie du dedans ===
-        const myVoie = [];
-        codesSnap.forEach(d => {
-          const data = d.data();
-          if (normPrenom(data.prenomNorm || data.prenom) === MY_PRENOM_NORM && data.actif !== false) {
-            myVoie.push({ id: d.id, ...data });
-          }
+      const labels = (analytics[SITES[0].id]||analytics[SITES[1].id])?.labels || [];
+      if(analyticsOk && labels.length){
+        new Chart(document.getElementById('tb-visites'), {
+          type:'line',
+          data:{ labels, datasets: SITES.map(s=>({
+            label:s.nom, data: analytics[s.id]?.uniques||[],
+            borderColor:s.color, backgroundColor:s.color+'14', borderWidth:2.5,
+            borderDash: s.dash?[6,4]:[], fill:true, tension:.35, pointRadius:0, pointHoverRadius:4
+          })) },
+          options:{ responsive:true, maintainAspectRatio:false,
+            plugins:{ legend:{display:false} },
+            scales:{ x:{grid:{display:false}, ticks:{color:'#8a7a55', maxTicksLimit:8, font:{size:11}}},
+                     y:{beginAtZero:true, grid:{color:'rgba(192,160,80,0.12)'}, ticks:{color:'#8a7a55', precision:0, font:{size:11}}} } }
         });
-        const voieEl = document.getElementById('my-voie');
-        if (!myVoie.length) {
-          voieEl.innerHTML = `<p class="cred-empty">Aucun accès Brahms encore — <a href="./creer-cle.html">en créer un</a>.</p>`;
-        } else {
-          voieEl.innerHTML = myVoie.map((c, i) => `
-            ${i > 0 ? '<div class="cred-multi"></div>' : ''}
-            <div class="cred-line">
-              <span class="cred-label">Prénom</span>
-              <span class="cred-value cred-value--prenom">${esc(c.prenom)}</span>
-              <button class="cred-copy" data-value="${escAttr(c.prenom)}">📋</button>
-            </div>
-            <div class="cred-line">
-              <span class="cred-label">Mot-graine</span>
-              <span class="cred-value">${esc(c.motGraine || '—')}</span>
-              <button class="cred-copy" data-value="${escAttr(c.motGraine || '')}">📋</button>
-            </div>
-            <div class="cred-line">
-              <span class="cred-label">Login</span>
-              <a href="https://lavoiedudedans.fr/pages/carnet/entrer/" target="_blank" rel="noopener" style="color:var(--gold);text-decoration:none;font-style:italic;font-family:'Cormorant Garamond',serif;">→ Aller au carnet</a>
-            </div>
-          `).join('');
-          attachCopy(voieEl);
-        }
-
-        // === MES ACCÈS — Le miroir intérieur ===
-        const myMiroir = [];
-        miCodesSnap.forEach(d => {
-          const data = d.data();
-          if (normPrenom(data.prenomNorm || data.prenom) === MY_PRENOM_NORM && data.actif !== false) {
-            myMiroir.push({ id: d.id, ...data });
-          }
-        });
-        const miroirEl = document.getElementById('my-miroir');
-        if (!myMiroir.length) {
-          miroirEl.innerHTML = `<p class="cred-empty">Aucun accès Brahms encore — <a href="./miroir-cles.html">en créer un</a>.</p>`;
-        } else {
-          miroirEl.innerHTML = myMiroir.map((c, i) => `
-            ${i > 0 ? `<div class="cred-multi"><p class="cred-multi__hint">Type ${c.type || '?'} :</p></div>` : ''}
-            <div class="cred-line">
-              <span class="cred-label">Prénom</span>
-              <span class="cred-value cred-value--prenom">${esc(c.prenom)}${c.type ? ` <em style="color:var(--gold);font-style:italic">(T${c.type})</em>` : ''}</span>
-              <button class="cred-copy" data-value="${escAttr(c.prenom)}">📋</button>
-            </div>
-            <div class="cred-line">
-              <span class="cred-label">Code</span>
-              <span class="cred-value">${esc(c.id)}</span>
-              <button class="cred-copy" data-value="${escAttr(c.id)}">📋</button>
-            </div>
-            <div class="cred-line">
-              <span class="cred-label">Login</span>
-              <a href="https://lemiroirinterieur.fr/pages/carnet/entrer/" target="_blank" rel="noopener" style="color:var(--gold);text-decoration:none;font-style:italic;font-family:'Cormorant Garamond',serif;">→ Aller au carnet</a>
-            </div>
-          `).join('');
-          attachCopy(miroirEl);
-        }
-
-        // === Miroir intérieur — stats ===
-        const miCodes = [];
-        miCodesSnap.forEach(d => miCodes.push({ id: d.id, ...d.data() }));
-        const miActifs = miCodes.filter(c => c.actif !== false);
-        const today2 = dateKey(0);
-        let miNotesAujourdhui = 0;
-        for (const c of miActifs) {
-          try {
-            const j = await getDocs(collection(db, 'carnets-type', c.id, 'jours'));
-            j.forEach(jd => { if (jd.id === today2) miNotesAujourdhui++; });
-          } catch {}
-        }
-        const typesSet = new Set(miActifs.map(c => c.type).filter(Boolean));
-        const typesRepresentes = typesSet.size;
-        document.getElementById('stat-mi-codes').textContent      = miActifs.length;
-        document.getElementById('stat-mi-demandes').textContent   = miDemandesSnap.size;
-        document.getElementById('stat-mi-aujourdhui').textContent = miNotesAujourdhui;
-        document.getElementById('stat-mi-types').textContent      = `${typesRepresentes}/9`;
-        const codes = [];
-        codesSnap.forEach(d => codes.push({ id: d.id, ...d.data() }));
-        const actifs = codes.filter(c => c.actif !== false);
-
-        // jours notés aujourd'hui (parcourt les sous-collections)
-        const today = dateKey(0);
-        let notesAujourdhui = 0;
-        const activities = [];
-        for (const c of actifs) {
-          try {
-            const jSnap = await getDocs(collection(db, 'carnets', c.id, 'jours'));
-            jSnap.forEach(jd => {
-              if (jd.id === today) notesAujourdhui++;
-              const data = jd.data();
-              if (data.matin?.noteLe) activities.push({
-                at: data.matin.noteLe.toDate ? data.matin.noteLe.toDate() : new Date(data.matin.noteLe),
-                what: `<strong>${esc(c.prenom)}</strong> a noté son matin`
-              });
-              if (data.soir?.fermeLe || data.soir?.ferméLe) {
-                const t = data.soir.fermeLe || data.soir.ferméLe;
-                activities.push({
-                  at: t.toDate ? t.toDate() : new Date(t),
-                  what: `<strong>${esc(c.prenom)}</strong> a fermé sa journée`
-                });
-              }
-            });
-          } catch {}
-          // login
-          if (c.dernierLogin) {
-            try {
-              activities.push({
-                at: c.dernierLogin.toDate ? c.dernierLogin.toDate() : new Date(c.dernierLogin),
-                what: `<strong>${esc(c.prenom)}</strong> s'est connecté(e)`
-              });
-            } catch {}
-          }
-          // créations
-          if (c.creeLe) {
-            try {
-              activities.push({
-                at: c.creeLe.toDate ? c.creeLe.toDate() : new Date(c.creeLe),
-                what: `Clé créée pour <strong>${esc(c.prenom)}</strong> · <em>${esc(c.motGraine)}</em>`
-              });
-            } catch {}
-          }
-        }
-
-        // chiffres
-        document.getElementById('stat-codes').textContent       = actifs.length;
-        document.getElementById('stat-demandes').textContent    = demandesSnap.size;
-        document.getElementById('stat-suggestions').textContent = suggestionsSnap.size;
-        document.getElementById('stat-aujourdhui').textContent  = notesAujourdhui;
-
-        // — alerte : badge dans le titre de la page si attente
-        const totalAttente = demandesSnap.size + suggestionsSnap.size;
-        if (totalAttente > 0) {
-          document.title = `(${totalAttente}) Cockpit · La voie du dedans`;
-          // surligne les chiffres concernés
-          if (demandesSnap.size > 0) {
-            document.getElementById('stat-demandes').style.color = '#b4523f';
-            document.getElementById('stat-demandes').parentElement.style.borderColor = '#b4523f';
-            document.getElementById('stat-demandes').parentElement.style.boxShadow = '0 0 0 1px rgba(180,82,63,0.3)';
-          }
-          if (suggestionsSnap.size > 0) {
-            document.getElementById('stat-suggestions').style.color = '#b08840';
-          }
-        } else {
-          document.title = 'Cockpit · La voie du dedans';
-        }
-
-        // mur des lampes
-        const lampesEl = document.getElementById('lampes-mount');
-        if (!actifs.length) {
-          lampesEl.innerHTML = `<div style="color: var(--ink-mute); font-style: italic;">Aucune lampe encore allumée. <a href="./creer-cle.html">Tendre la première →</a></div>`;
-        } else {
-          lampesEl.innerHTML = actifs.map(c => {
-            let last = null;
-            try { last = c.dernierLogin?.toDate ? c.dernierLogin.toDate() : null; } catch {}
-            const days = last ? joursDepuis(last) : null;
-            const cls = classeLampe(days);
-            return `
-              <div class="ck-lampe ${cls}" title="${esc(c.prenom)} · ${esc(c.motGraine)} · ${last ? relatif(last) : 'jamais ouverte'}">
-                <span class="ck-lampe__icon">🪔</span>
-                <span class="ck-lampe__name">${esc(c.prenom)}</span>
-              </div>
-            `;
-          }).join('');
-        }
-
-        // activité récente : trie par date desc, prend les 12 derniers
-        activities.sort((a, b) => b.at - a.at);
-        const recent = activities.slice(0, 12);
-        const actEl = document.getElementById('activity-mount');
-        if (!recent.length) {
-          actEl.innerHTML = `<div style="color: var(--ink-mute); font-style: italic;">Aucune activité encore. Le carnet attend.</div>`;
-        } else {
-          actEl.innerHTML = recent.map(a => `
-            <div class="ck-activity__item">
-              <span class="ck-activity__when">${relatif(a.at)}</span>
-              <span class="ck-activity__what">${a.what}</span>
-            </div>
-          `).join('');
-        }
-      } catch (e) {
-        console.error(e);
+      } else {
+        document.querySelector('.tb-chart').innerHTML =
+          `<div class="tb-state">Les statistiques de visite ne sont pas encore activées.<br>Une petite règle Firebase à ouvrir — voir les instructions que Claude t'a données.</div>`;
       }
-    });
+
+      const pagesEl = document.getElementById('tb-pages');
+      if(analyticsOk){
+        pagesEl.innerHTML = SITES.map(s=>{
+          const tp = analytics[s.id]?.topPages||[];
+          if(!tp.length) return `<div style="--c:${s.color}"><p class="tb-pages__site"><span class="tb-dot" style="background:${s.color}"></span>${esc(s.nom)}</p><p class="tb-empty">Pas encore de données.</p></div>`;
+          const max = tp[0][1]||1;
+          return `<div style="--c:${s.color}">
+            <p class="tb-pages__site"><span class="tb-dot" style="background:${s.color}"></span>${esc(s.nom)}</p>
+            ${tp.map(([p,n])=>`<div class="tb-prow">
+              <span class="tb-prow__lab" title="${esc(prettyPath(p))}">${esc(prettyPath(p))}</span>
+              <span class="tb-prow__track"><span class="tb-prow__fill" style="width:${Math.round(n/max*100)}%"></span></span>
+              <span class="tb-prow__n">${n}</span></div>`).join('')}
+          </div>`;
+        }).join('');
+      } else {
+        pagesEl.innerHTML = `<div class="tb-empty">Disponible une fois les statistiques de visite activées.</div>`;
+      }
+
+      const prev = lastVisit ? new Date(lastVisit).toLocaleDateString('fr-FR',{day:'numeric',month:'long'}) : '—';
+      document.getElementById('tb-updated').textContent = `Dernière visite : ${prev}`;
+      try{ localStorage.setItem(LASTVISIT_KEY, String(Date.now())); }catch(e){}
+    })();
   </script>
 </body>
 </html>

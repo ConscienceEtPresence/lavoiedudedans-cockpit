@@ -4,119 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex,nofollow" />
-  <title>Pulsation · Cockpit</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/cockpit.css" />
-
-  <style>
-    .pulse-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; margin: 1.5rem 0; }
-    @media (max-width: 800px) { .pulse-grid { grid-template-columns: 1fr; } }
-
-    .pulse-card {
-      background: linear-gradient(170deg, #FFFDF4, var(--paper));
-      border: 1px solid var(--gold-soft);
-      border-radius: 18px;
-      padding: 1.5rem 1.4rem;
-    }
-    .pulse-card__title {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 1.35rem; font-weight: 500;
-      color: var(--ink-title); margin: 0 0 1.2rem;
-    }
-    .pulse-card__title em { color: var(--gold); font-style: italic; }
-
-    .pulse-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
-    .pulse-stat {
-      text-align: center; padding: 1rem;
-      background: var(--paper); border-radius: 12px;
-      border: 1px solid var(--line);
-    }
-    .pulse-stat__num {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 2.4rem; font-weight: 500;
-      color: var(--gold); display: block; line-height: 1;
-    }
-    .pulse-stat__lbl {
-      font-size: .78rem; letter-spacing: .12em; text-transform: uppercase;
-      color: var(--ink-mute); margin-top: .4rem;
-    }
-    .pulse-stat__sub {
-      font-style: italic; color: var(--ink-soft); font-size: .82rem; margin-top: .2rem;
-    }
-
-    .chart {
-      display: flex; align-items: flex-end; gap: 3px;
-      height: 80px; margin-top: .8rem;
-    }
-    .chart__bar {
-      flex: 1; background: var(--gold-soft); border-radius: 2px 2px 0 0;
-      position: relative; min-height: 2px;
-      transition: all .3s;
-    }
-    .chart__bar:hover { background: var(--gold); }
-    .chart__bar.today { background: var(--gold); box-shadow: 0 0 8px rgba(192,160,80,.5); }
-    .chart-legend {
-      display: flex; justify-content: space-between; font-size: .72rem;
-      color: var(--ink-mute); margin-top: .4rem; font-style: italic;
-    }
-    .chart-line {
-      font-family: 'Cormorant Garamond', serif;
-      font-style: italic; color: var(--ink-soft); margin: .8rem 0 .3rem;
-    }
-
-    .empty {
-      text-align: center; padding: 2rem; color: var(--ink-mute);
-      font-style: italic; font-family: 'Cormorant Garamond', serif;
-    }
-  </style>
+  <meta http-equiv="refresh" content="0; url=./tableau-de-bord.html" />
+  <link rel="canonical" href="./tableau-de-bord.html" />
+  <title>Tableau de bord · Cockpit</title>
 </head>
-<body>
-
-  <header class="ck-head">
-    <div class="ck-head__inner">
-      <div class="ck-head__brand">Cockpit · <em>Pulsation</em></div>
-      <nav class="ck-head__nav">
-        <div class="nav-group nav-group--voie">
-          <span class="nav-group__label">📿 Voie du dedans</span>
-          <a href="./tableau-de-bord.html">Tableau</a>
-          <a href="./codes.html">Clés</a>
-          <a href="./demandes.html">Demandes</a>
-        </div>
-        <div class="nav-group nav-group--miroir">
-          <span class="nav-group__label">🪞 Miroir</span>
-          <a href="./miroir-cles.html">Clés</a>
-          <a href="./miroir-demandes.html">Demandes</a>
-        </div>
-        <div class="nav-group nav-group--transverse">
-          <span class="nav-group__label">🫧 Transverse</span>
-          <a href="./pulsation.html" class="is-active">Pulsation</a>
-          <a href="#" id="logout-link">Sortir</a>
-        </div>
-      </nav>
-    </div>
-  </header>
-
-  <main class="ck-main">
-    <div class="ck-container">
-
-      <h1 class="ck-h1"><em>Pulsation</em> des sites</h1>
-      <p class="ck-sub">
-        Un aperçu léger et anonyme du trafic sur les deux sites — pageviews et visiteurs uniques.
-        Aucun cookie, aucun pistage : juste un compteur.
-      </p>
-
-      <div class="pulse-grid" id="grid">— chargement —</div>
-
-      <p style="text-align:center;font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--ink-mute);margin-top:2rem;font-size:.9rem;">
-        🫧 Les compteurs commencent à zéro au premier déploiement. Les chiffres apparaîtront au fil des visites.
-      </p>
-
-    </div>
-  </main>
-
-  <script type="module" src="assets/js/pulsation.js?v=1"></script>
+<body style="font-family:'Inter',system-ui,sans-serif;background:#fbf7ec;color:#4a3a18">
+  <p style="text-align:center;padding:3rem 1rem;font-style:italic">
+    « Pulsation » a été réuni dans le <a href="./tableau-de-bord.html" style="color:#c0a050">tableau de bord</a>…
+  </p>
+  <script>location.replace('./tableau-de-bord.html');</script>
 </body>
 </html>
