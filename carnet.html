@@ -71,6 +71,32 @@
       font-size: .92rem;
       border-bottom: 1px dotted var(--gold-deep, #8a7028);
     }
+    /* Objectifs (nouveau modèle) */
+    .ck-obj { margin: .35rem 0; }
+    .ck-obj__theme {
+      font-family: 'Inter', sans-serif;
+      font-size: .58rem; letter-spacing: .12em; text-transform: uppercase;
+      color: #8a7028; margin-right: .4rem;
+    }
+    .ck-obj__lib { color: #2a1f08; font-family: 'Source Serif 4', Georgia, serif; }
+    .ck-statut {
+      display: inline-block;
+      font-family: 'Inter', sans-serif; font-size: .68rem;
+      padding: .08rem .5rem; border-radius: 999px; margin-left: .2rem;
+      vertical-align: middle;
+    }
+    .ck-statut--tenu    { background: rgba(120,160,90,.18);  color: #4a6a2a; }
+    .ck-statut--parfois { background: rgba(192,160,80,.20);  color: #8a7028; }
+    .ck-statut--oublie  { background: rgba(150,140,120,.18); color: #6a5e4a; }
+    .ck-statut--repris  { background: rgba(110,140,180,.18); color: #3a5a80; }
+    /* Badge état du jour */
+    .ck-badge {
+      font-family: 'Inter', sans-serif; font-size: .6rem;
+      letter-spacing: .1em; text-transform: uppercase;
+      padding: .12rem .5rem; border-radius: 999px; vertical-align: middle;
+    }
+    .ck-badge--depose { background: rgba(120,160,90,.18); color: #4a6a2a; }
+    .ck-badge--pose   { background: rgba(192,160,80,.18); color: #8a7028; }
   </style>
 </head>
 <body>
@@ -120,6 +146,21 @@
         return;
       }
       try {
+        // 0) Données du carnet (libellés) — chargées depuis le site en ligne (CORS ouvert)
+        const DATA = 'https://lavoiedudedans.fr/data/carnet/';
+        const [vigRes, objRes] = await Promise.all([
+          fetch(DATA + 'vigilances.json').then(r => r.json()).catch(() => ({})),
+          fetch(DATA + 'objectifs.json').then(r => r.json()).catch(() => ({}))
+        ]);
+        const vigById = {};
+        for (const v of (vigRes.vigilances || [])) vigById[v.id] = v;
+        const objById = {};
+        for (const o of (objRes.objectifs || [])) objById[o.id] = o;
+        const STATUT_LABEL = { tenu: 'tenu', parfois: 'parfois', oublie: 'oublié', repris: 'à reprendre' };
+        const labelVig = vid => vigById[vid]?.label || vid || '';
+        const labelObj = oid => objById[oid]?.matin?.libelle || oid || '';
+        const vigOfObj = oid => objById[oid]?.vigilance || '';
+
         // 1) Profil
         const profilSnap = await getDoc(doc(db, 'carnets', id, '_meta', 'profil'));
         const profil = profilSnap.exists() ? profilSnap.data() : null;
@@ -147,61 +188,100 @@
           </div>`;
 
         // 3) Rendu des jours
-        const renderJour = (j) => {
-          const d = j.data;
-          const matin = d.matin || {};
-          const soir = d.soir || {};
-          const blocs = [];
 
-          if (matin.contextes?.length) blocs.push(`
+        // --- Nouveau modèle (carnet d'adab refondé) ---
+        const renderJourNouveau = (matin, soir) => {
+          const blocs = [];
+          // Liste des objectifs : {id, vigilance} (multi) ou reconstruit depuis objectifsIds
+          const objs = (matin.objectifs && matin.objectifs.length)
+            ? matin.objectifs
+            : (matin.objectifsIds || []).map(oid => ({ id: oid, vigilance: vigOfObj(oid) || matin.vigilanceId }));
+          const vigs = [...new Set(objs.map(o => o.vigilance).filter(Boolean))];
+          const bilans = soir.bilansObjectifs || {};
+
+          if (vigs.length) blocs.push(`
             <div class="ck-jour__bloc">
-              <span class="ck-jour__label">Matin · Contextes</span>
-              <div class="ck-jour__chips">${matin.contextes.map(c => `<span class="ck-jour__chip">${esc(c)}</span>`).join('')}</div>
+              <span class="ck-jour__label">Matin · Vigilance${vigs.length > 1 ? 's' : ''}</span>
+              <div class="ck-jour__chips">${vigs.map(v => `<span class="ck-jour__chip">${esc(labelVig(v))}</span>`).join('')}</div>
             </div>`);
-          if (matin.axes?.length) blocs.push(`
+          if (matin.ancrage) blocs.push(`
             <div class="ck-jour__bloc">
-              <span class="ck-jour__label">Matin · Axes</span>
-              <div class="ck-jour__chips">${matin.axes.map(a => `<span class="ck-jour__chip">${esc(a)}</span>`).join('')}</div>
+              <span class="ck-jour__label">Matin · Ce qui se joue</span>
+              <p class="ck-jour__corps"><em>« ${esc(matin.ancrage)} »</em></p>
             </div>`);
-          if (matin.adab) blocs.push(`
+          if (objs.length) blocs.push(`
             <div class="ck-jour__bloc">
-              <span class="ck-jour__label">Matin · Adab</span>
-              <p class="ck-jour__corps">${esc(matin.adab)}</p>
+              <span class="ck-jour__label">Matin · Objectifs portés</span>
+              ${objs.map(o => {
+                const b = bilans[o.id];
+                const statut = b?.statut ? `<span class="ck-statut ck-statut--${esc(b.statut)}">${esc(STATUT_LABEL[b.statut] || b.statut)}</span>` : '';
+                const note = b?.note ? `<p class="ck-jour__corps" style="margin:.15rem 0 0; font-size:.9rem;">${esc(b.note)}</p>` : '';
+                return `<div class="ck-obj">
+                  <span class="ck-obj__theme">${esc(labelVig(o.vigilance))}</span>
+                  <span class="ck-obj__lib">${esc(labelObj(o.id))}</span> ${statut}${note}
+                </div>`;
+              }).join('')}
             </div>`);
-          if (matin.geste) blocs.push(`
+          if (matin.personnel) {
+            const bp = soir.bilanPersonnel;
+            const st = bp?.statut ? ` <span class="ck-statut ck-statut--${esc(bp.statut)}">${esc(STATUT_LABEL[bp.statut] || bp.statut)}</span>` : '';
+            blocs.push(`
             <div class="ck-jour__bloc">
-              <span class="ck-jour__label">Matin · Geste</span>
-              <p class="ck-jour__corps">${esc(matin.geste)}</p>
+              <span class="ck-jour__label">Matin · Objectif personnel</span>
+              <p class="ck-jour__corps">${esc(matin.personnel)}${st}</p>
+              ${bp?.note ? `<p class="ck-jour__corps" style="font-size:.9rem; margin:.15rem 0 0;">${esc(bp.note)}</p>` : ''}
             </div>`);
-          if (matin.note) blocs.push(`
+          }
+          if (soir.presente) blocs.push(`
             <div class="ck-jour__bloc">
-              <span class="ck-jour__label">Matin · Note</span>
-              <p class="ck-jour__corps">${esc(matin.note)}</p>
-            </div>`);
-          if (soir.mouvements?.length) blocs.push(`
-            <div class="ck-jour__bloc">
-              <span class="ck-jour__label">Soir · Mouvements</span>
-              <div class="ck-jour__chips">${soir.mouvements.map(m => `<span class="ck-jour__chip">${esc(m)}</span>`).join('')}</div>
-            </div>`);
-          if (soir.ceQuiAPousse?.length) blocs.push(`
-            <div class="ck-jour__bloc">
-              <span class="ck-jour__label">Soir · Ce qui a poussé</span>
-              <div class="ck-jour__chips">${soir.ceQuiAPousse.map(c => `<span class="ck-jour__chip">${esc(c)}</span>`).join('')}</div>
+              <span class="ck-jour__label">Soir · Ce qui s'est présenté</span>
+              <p class="ck-jour__corps">${esc(soir.presente)}</p>
             </div>`);
           if (soir.gratitudeNote) blocs.push(`
             <div class="ck-jour__bloc">
               <span class="ck-jour__label">Soir · Gratitude</span>
               <p class="ck-jour__corps">${esc(soir.gratitudeNote)}</p>
             </div>`);
-          if (soir.repriseDemain?.texte) blocs.push(`
+          if (soir.repriseTexte) blocs.push(`
             <div class="ck-jour__bloc">
-              <span class="ck-jour__label">Soir · Reprise demain</span>
-              <p class="ck-jour__corps">${esc(soir.repriseDemain.texte)}</p>
+              <span class="ck-jour__label">Soir · Pour demain</span>
+              <p class="ck-jour__corps">${esc(soir.repriseTexte)}</p>
             </div>`);
+          return blocs;
+        };
 
+        // --- Ancien modèle (avant refonte) — repli ---
+        const renderJourAncien = (matin, soir) => {
+          const blocs = [];
+          const chips = (label, arr) => { if (arr?.length) blocs.push(`<div class="ck-jour__bloc"><span class="ck-jour__label">${label}</span><div class="ck-jour__chips">${arr.map(c => `<span class="ck-jour__chip">${esc(c)}</span>`).join('')}</div></div>`); };
+          const txt = (label, v) => { if (v) blocs.push(`<div class="ck-jour__bloc"><span class="ck-jour__label">${label}</span><p class="ck-jour__corps">${esc(v)}</p></div>`); };
+          chips('Matin · Contextes', matin.contextes);
+          chips('Matin · Axes', matin.axes);
+          txt('Matin · Adab', matin.adab);
+          txt('Matin · Geste', matin.geste);
+          txt('Matin · Note', matin.note);
+          chips('Soir · Mouvements', soir.mouvements);
+          chips('Soir · Ce qui a poussé', soir.ceQuiAPousse);
+          txt('Soir · Gratitude', soir.gratitudeNote);
+          txt('Soir · Reprise demain', soir.repriseDemain?.texte);
+          return blocs;
+        };
+
+        const renderJour = (j) => {
+          const d = j.data;
+          const matin = d.matin || {};
+          const soir = d.soir || {};
+          // Détecte le modèle : nouveau si vigilanceId / objectifs / objectifsIds présents
+          const estNouveau = !!(matin.vigilanceId || (matin.objectifs && matin.objectifs.length) || (matin.objectifsIds && matin.objectifsIds.length));
+          const blocs = estNouveau ? renderJourNouveau(matin, soir) : renderJourAncien(matin, soir);
+          const aPose = !!matin.poseLe;
+          const aDepose = !!soir.fermeLe;
+          const badge = aDepose
+            ? '<span class="ck-badge ck-badge--depose">déposé</span>'
+            : (aPose ? '<span class="ck-badge ck-badge--pose">posé</span>' : '');
           return `
             <div class="ck-jour">
-              <h3 class="ck-jour__date">${dateLisible(j.date)}</h3>
+              <h3 class="ck-jour__date">${dateLisible(j.date)} ${badge}</h3>
               ${blocs.length ? blocs.join('') : '<p style="color:#8a7a55; font-style:italic; margin:0;">Jour ouvert mais rien de noté.</p>'}
             </div>`;
         };
