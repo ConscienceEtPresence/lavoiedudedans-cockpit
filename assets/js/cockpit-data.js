@@ -102,6 +102,56 @@ export async function loadAnalytics(siteId, days = 30) {
            totalPv: allPages.reduce((n, [, c]) => n + c, 0) };
 }
 
+/* ---------- Doc du mois : distincts + personnes distinctes par page ---------- */
+export function monthKey(d = new Date()) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+export async function loadMonthly(siteId) {
+  const ref = doc(db, 'analytics', siteId, 'jours', '_mois_' + monthKey());
+  let snap; try { snap = await getDoc(ref); } catch (e) { return null; }
+  if (!snap.exists()) return null;
+  const d = snap.data();
+  const views = {}, uniques = {};
+  for (const [f, v] of Object.entries(d)) {
+    if (typeof v !== 'number') continue;
+    if (f.startsWith('upages.')) uniques[f.slice(7)] = v;
+    else if (f.startsWith('pages.')) views[f.slice(6)] = v;
+  }
+  const viewsArr = Object.entries(views).sort((a, b) => b[1] - a[1]);
+  return {
+    uniques: d.uniques || 0, pageviews: d.pageviews || 0,
+    views, pageUniques: uniques, viewsArr,
+    totalViews: viewsArr.reduce((n, [, c]) => n + c, 0),
+  };
+}
+
+/* ---------- Regroupement par section ---------- */
+const SECTION_LABELS = {
+  accueil: 'Accueil', iskandari: 'Les Sagesses', carnet: 'Le Carnet', coran: 'Coran',
+  'noms-divins': 'Les 99 Noms', dictionnaire: 'Dictionnaire', racines: 'Racines',
+  metaphysique: 'Métaphysique', poesie: 'Poésie', contes: 'Contes', voyage: 'Le Voyage',
+  'mot-du-jour': 'Mot du jour', decouvrir: 'Découvrir', cheminer: 'Cheminer',
+  rencontrer: 'Rencontrer', en: 'Pages anglaises', auteurs: 'Auteurs', auteur: 'Auteurs',
+};
+export function sectionOf(pathKey) {
+  if (pathKey === 'home' || pathKey === 'index') return 'accueil';
+  let k = pathKey;
+  if (k.startsWith('en_')) return 'en';
+  k = k.replace(/^pages_/, '');
+  return k.split('_')[0] || 'accueil';
+}
+export function sectionLabel(sec) {
+  return SECTION_LABELS[sec] || sec.charAt(0).toUpperCase() + sec.slice(1).replace(/-/g, ' ');
+}
+// map = { pathKey: count } ; uniqMap optionnel = { pathKey: distinct }
+export function aggBySection(map, uniqMap) {
+  const views = {}, uniq = {};
+  for (const [pk, n] of Object.entries(map || {})) { const s = sectionOf(pk); views[s] = (views[s] || 0) + n; }
+  if (uniqMap) for (const [pk, n] of Object.entries(uniqMap)) { const s = sectionOf(pk); uniq[s] = (uniq[s] || 0) + n; }
+  return Object.entries(views).sort((a, b) => b[1] - a[1])
+    .map(([s, n]) => ({ sec: s, label: sectionLabel(s), views: n, uniques: uniq[s] || null }));
+}
+
 /* ---------- Données de libellés (dedans) ---------- */
 let _dedansData = null;
 async function dedansData() {

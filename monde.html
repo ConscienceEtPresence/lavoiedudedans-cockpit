@@ -25,7 +25,7 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
   <script type="module">
-    import { SITES, loadAnalytics, loadCarnetAggregate, labelPage, rawPath, esc } from './assets/js/cockpit-data.js';
+    import { SITES, loadAnalytics, loadMonthly, loadCarnetAggregate, aggBySection, labelPage, rawPath, esc } from './assets/js/cockpit-data.js';
 
     const key = (new URLSearchParams(location.search).get('site') === 'miroir') ? 'miroir' : 'dedans';
     const S = SITES[key];
@@ -36,37 +36,56 @@
     const mount = document.getElementById('mount');
 
     (async () => {
-      let a = null, agg = null;
+      let a = null, mo = null, agg = null;
       try { a = await loadAnalytics(S.id, 30); } catch (e) { console.warn(e); }
+      try { mo = await loadMonthly(S.id); } catch (e) { console.warn(e); }
       try { agg = await loadCarnetAggregate(key); } catch (e) { console.warn(e); }
 
       const kpi = (n, l, accent) => `<div class="c-kpi ${accent ? 'c-kpi--accent' : ''}"><span class="c-kpi__n">${n}</span><div class="c-kpi__l">${l}</div></div>`;
 
-      // KPIs
+      // KPIs — aujourd'hui & 7j (quotidien) + ce mois (distinct réel)
       const kpisHTML = a ? `
         <div class="c-kpis">
           ${kpi(a.uToday, "visiteurs aujourd'hui", true)}
-          ${kpi(a.u7, 'visiteurs · 7 jours')}
-          ${kpi(a.u30, 'visiteurs · 30 jours')}
-          ${kpi(a.pv30, 'pages vues · 30 j')}
+          ${kpi(a.u7, 'sur 7 jours')}
+          ${kpi(mo ? mo.uniques : '—', 'personnes distinctes · ce mois')}
+          ${kpi(mo ? mo.pageviews : a.pv30, mo ? 'pages vues · ce mois' : 'pages vues · 30 j')}
         </div>` : `<div class="c-card"><p class="c-empty">Les statistiques de visite ne sont pas encore disponibles.</p></div>`;
 
-      // Top pages
-      const tp = a?.topPages || [];
-      const maxP = tp[0]?.[1] || 1;
+      // Pages les plus visitées (ce mois) : vues + personnes distinctes
+      const va = mo?.viewsArr || (a?.topPages || []);
+      const top = va.slice(0, 8);
+      const maxP = top[0]?.[1] || 1;
       const pagesHTML = `
         <div class="c-card">
-          <h2 class="c-card__h"><span class="c-dot"></span>Pages les plus visitées</h2>
-          ${tp.length ? `<div class="c-bars">${tp.map(([p, n]) => `
-            <div class="c-bar">
+          <h2 class="c-card__h"><span class="c-dot"></span>Pages les plus visitées${mo ? ' · ce mois' : ''}</h2>
+          ${top.length ? `<div class="c-bars">${top.map(([p, n]) => {
+            const u = mo?.pageUniques?.[p];
+            return `<div class="c-bar">
               <span class="c-bar__lab" title="${esc(rawPath(p))}">${esc(labelPage(p))}</span>
-              <span class="c-bar__n">${n}</span>
+              <span class="c-bar__n">${n}${u != null ? ` <span style="font-weight:600;font-size:.8rem;color:var(--mute)">· ${u} pers.</span>` : ''}</span>
               <span class="c-bar__path">${esc(rawPath(p))}</span>
               <span class="c-bar__track"><span class="c-bar__fill" style="width:${Math.round(n/maxP*100)}%"></span></span>
-            </div>`).join('')}</div>
-            <div class="c-links" style="margin-top:1.1rem"><a class="c-btn c-btn--ghost" href="pages.html?site=${key}">Toutes les pages →</a></div>`
+            </div>`;
+          }).join('')}</div>
+            <p style="color:var(--mute);font-size:.85rem;margin:.9rem 0 0">« pers. » = personnes distinctes ce mois · le grand chiffre = vues (répétitions incluses)</p>
+            <div class="c-links" style="margin-top:1rem"><a class="c-btn c-btn--ghost" href="pages.html?site=${key}">Toutes les pages →</a></div>`
             : '<p class="c-empty">Pas encore de pages enregistrées.</p>'}
         </div>`;
+
+      // Par section
+      const secs = mo ? aggBySection(mo.views, mo.pageUniques) : [];
+      const maxS = secs[0]?.views || 1;
+      const sectionHTML = secs.length ? `
+        <div class="c-card">
+          <h2 class="c-card__h"><span class="c-dot"></span>Par grande section · ce mois</h2>
+          <div class="c-bars">${secs.map(s => `
+            <div class="c-bar">
+              <span class="c-bar__lab">${esc(s.label)}</span>
+              <span class="c-bar__n">${s.views}${s.uniques != null ? ` <span style="font-weight:600;font-size:.8rem;color:var(--mute)">· ${s.uniques} pers.</span>` : ''}</span>
+              <span class="c-bar__track"><span class="c-bar__fill" style="width:${Math.round(s.views/maxS*100)}%"></span></span>
+            </div>`).join('')}</div>
+        </div>` : '';
 
       // Courbe
       const chartHTML = a && a.labels.length ? `
@@ -123,6 +142,7 @@
         <div style="height:1.1rem"></div>
         ${chartHTML}
         ${pagesHTML}
+        ${sectionHTML}
         ${funnelHTML}
         ${rankHTML}`;
 

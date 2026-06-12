@@ -22,7 +22,7 @@
   <main class="c-wrap" id="mount"><div class="c-state">Chargement…</div></main>
 
   <script type="module">
-    import { SITES, loadAnalytics, labelPage, rawPath, esc } from './assets/js/cockpit-data.js';
+    import { SITES, loadAnalytics, loadMonthly, labelPage, rawPath, esc } from './assets/js/cockpit-data.js';
 
     const key = (new URLSearchParams(location.search).get('site') === 'miroir') ? 'miroir' : 'dedans';
     const S = SITES[key];
@@ -32,30 +32,37 @@
 
     (async () => {
       const mount = document.getElementById('mount');
-      let a = null;
-      try { a = await loadAnalytics(S.id, 30); } catch (e) {}
-      if (!a || !a.allPages.length) {
+      let mo = null, a = null;
+      try { mo = await loadMonthly(S.id); } catch (e) {}
+      if (!mo) { try { a = await loadAnalytics(S.id, 30); } catch (e) {} }
+      const arr = mo ? mo.viewsArr : (a ? a.allPages : []);
+      const uniq = mo ? mo.pageUniques : null;
+      const total = mo ? mo.totalViews : (a ? a.totalPv : 0);
+      const periode = mo ? 'ce mois' : '30 jours';
+      if (!arr.length) {
         mount.innerHTML = `<div class="c-hero"><p class="c-hero__eyebrow">${esc(S.nom)}</p><h1 class="c-hero__title">Pages visitées</h1></div><div class="c-card"><p class="c-empty">Pas encore de données de visite.</p></div>`;
         return;
       }
-      const max = a.allPages[0][1] || 1;
-      const total = a.totalPv || 1;
+      const max = arr[0][1] || 1;
       mount.innerHTML = `
         <div class="c-hero">
-          <p class="c-hero__eyebrow">${esc(S.nom)} · 30 jours</p>
+          <p class="c-hero__eyebrow">${esc(S.nom)} · ${periode}</p>
           <h1 class="c-hero__title">Pages visitées</h1>
-          <p class="c-hero__sub">${a.allPages.length} pages · ${total} vues au total</p>
+          <p class="c-hero__sub">${arr.length} pages · ${total} vues au total</p>
         </div>
         <div class="c-card">
           <div class="c-bars">
-            ${a.allPages.map(([p, n]) => `
-              <div class="c-bar">
+            ${arr.map(([p, n]) => {
+              const u = uniq ? uniq[p] : null;
+              return `<div class="c-bar">
                 <span class="c-bar__lab" title="${esc(rawPath(p))}">${esc(labelPage(p))}</span>
-                <span class="c-bar__n">${n}</span>
+                <span class="c-bar__n">${n}${u != null ? ` <span style="font-weight:600;font-size:.8rem;color:var(--mute)">· ${u} pers.</span>` : ''}</span>
                 <span class="c-bar__path">${esc(rawPath(p))} · ${Math.round(n/total*100)} %</span>
                 <span class="c-bar__track"><span class="c-bar__fill" style="width:${Math.round(n/max*100)}%"></span></span>
-              </div>`).join('')}
+              </div>`;
+            }).join('')}
           </div>
+          <p style="color:var(--mute);font-size:.85rem;margin:1rem 0 0">Le grand chiffre = vues · « pers. » = personnes distinctes ce mois.</p>
         </div>`;
     })();
   </script>
