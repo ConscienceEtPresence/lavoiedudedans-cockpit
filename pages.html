@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="robots" content="noindex,nofollow" />
+  <meta name="theme-color" content="#f4f5f7" />
+  <title>Pages visitées · Cockpit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/cockpit2.css?v=1" />
+</head>
+<body>
+  <div class="c-top">
+    <div class="c-top__in">
+      <a class="c-back" id="back" href="index.html" aria-label="Retour">←</a>
+      <div class="c-top__title"><span class="c-dot"></span><span>Pages visitées</span></div>
+    </div>
+  </div>
+
+  <main class="c-wrap" id="mount"><div class="c-state">Chargement…</div></main>
+
+  <script type="module">
+    import { SITES, loadAnalytics, labelPage, rawPath, esc } from './assets/js/cockpit-data.js';
+
+    const key = (new URLSearchParams(location.search).get('site') === 'miroir') ? 'miroir' : 'dedans';
+    const S = SITES[key];
+    document.body.classList.add('world--' + key);
+    document.getElementById('back').href = 'monde.html?site=' + key;
+    document.title = 'Pages · ' + S.nom;
+
+    (async () => {
+      const mount = document.getElementById('mount');
+      let a = null;
+      try { a = await loadAnalytics(S.id, 30); } catch (e) {}
+      if (!a || !a.allPages.length) {
+        mount.innerHTML = `<div class="c-hero"><p class="c-hero__eyebrow">${esc(S.nom)}</p><h1 class="c-hero__title">Pages visitées</h1></div><div class="c-card"><p class="c-empty">Pas encore de données de visite.</p></div>`;
+        return;
+      }
+      const max = a.allPages[0][1] || 1;
+      const total = a.totalPv || 1;
+      mount.innerHTML = `
+        <div class="c-hero">
+          <p class="c-hero__eyebrow">${esc(S.nom)} · 30 jours</p>
+          <h1 class="c-hero__title">Pages visitées</h1>
+          <p class="c-hero__sub">${a.allPages.length} pages · ${total} vues au total</p>
+        </div>
+        <div class="c-card">
+          <div class="c-bars">
+            ${a.allPages.map(([p, n]) => `
+              <div class="c-bar">
+                <span class="c-bar__lab" title="${esc(rawPath(p))}">${esc(labelPage(p))}</span>
+                <span class="c-bar__n">${n}</span>
+                <span class="c-bar__path">${esc(rawPath(p))} · ${Math.round(n/total*100)} %</span>
+                <span class="c-bar__track"><span class="c-bar__fill" style="width:${Math.round(n/max*100)}%"></span></span>
+              </div>`).join('')}
+          </div>
+        </div>`;
+    })();
+  </script>
+</body>
+</html>

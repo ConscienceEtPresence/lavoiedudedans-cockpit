@@ -1,0 +1,229 @@
+/* ============================================================
+   COCKPIT v2 — outil analytique interne, mobile d'abord, gros texte
+   Lisibilité maximale, cartes claires, couleur par monde.
+   Outil privé (un seul utilisateur) — pas de contrainte de marque.
+   ============================================================ */
+
+:root {
+  --bg: #f4f5f7;
+  --card: #ffffff;
+  --ink: #16181d;
+  --ink-2: #41454d;
+  --mute: #888e98;
+  --line: #e7e9ee;
+  --shadow: 0 6px 24px -12px rgba(20, 24, 33, 0.18);
+  --shadow-lg: 0 16px 44px -20px rgba(20, 24, 33, 0.28);
+  --radius: 20px;
+  --radius-sm: 14px;
+
+  /* Accents par monde */
+  --dedans: #1f8f6f;   --dedans-soft: #e4f4ef;   --dedans-deep: #156b53;
+  --miroir: #6d5ab8;   --miroir-soft: #ece8f8;   --miroir-deep: #4f3f93;
+
+  /* L'accent courant (défini par .world--dedans / .world--miroir sur <body>) */
+  --accent: var(--dedans);
+  --accent-soft: var(--dedans-soft);
+  --accent-deep: var(--dedans-deep);
+}
+.world--miroir {
+  --accent: var(--miroir);
+  --accent-soft: var(--miroir-soft);
+  --accent-deep: var(--miroir-deep);
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 18px;             /* base GROSSE */
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- En-tête ---------- */
+.c-top {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(244, 245, 247, 0.85);
+  backdrop-filter: saturate(160%) blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.c-top__in {
+  max-width: 880px; margin: 0 auto;
+  display: flex; align-items: center; gap: .8rem;
+  padding: .85rem 1.1rem;
+}
+.c-back {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; flex: 0 0 auto;
+  border-radius: 12px; background: var(--card); border: 1px solid var(--line);
+  color: var(--ink); text-decoration: none; font-size: 1.4rem; line-height: 1;
+  box-shadow: var(--shadow);
+}
+.c-top__title {
+  font-weight: 700; font-size: 1.15rem; letter-spacing: -.01em;
+  display: flex; align-items: center; gap: .55rem; min-width: 0;
+}
+.c-top__title .c-dot { flex: 0 0 auto; }
+.c-top__title span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.c-dot { width: 14px; height: 14px; border-radius: 5px; display: inline-block; background: var(--accent); }
+
+/* ---------- Conteneur ---------- */
+.c-wrap { max-width: 880px; margin: 0 auto; padding: 1.2rem 1.1rem 5rem; }
+
+.c-hero { margin: .4rem 0 1.4rem; }
+.c-hero__eyebrow {
+  font-size: .8rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--accent-deep); margin: 0 0 .35rem;
+}
+.c-hero__title { font-size: 2.1rem; font-weight: 800; letter-spacing: -.02em; margin: 0; line-height: 1.1; }
+.c-hero__sub { color: var(--mute); margin: .5rem 0 0; font-size: 1rem; }
+
+/* ---------- Cartes ---------- */
+.c-card {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 1.3rem 1.3rem; margin: 0 0 1.1rem;
+}
+.c-card__h {
+  font-size: 1.25rem; font-weight: 800; letter-spacing: -.01em; margin: 0 0 1rem;
+  display: flex; align-items: center; gap: .55rem;
+}
+.c-card__h .c-dot { width: 12px; height: 12px; }
+
+/* ---------- KPI (gros chiffres) ---------- */
+.c-kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: .9rem; }
+.c-kpi {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius-sm); padding: 1.1rem 1.2rem;
+  box-shadow: var(--shadow);
+}
+.c-kpi--accent { background: var(--accent); border-color: var(--accent); color: #fff; }
+.c-kpi__n { font-size: 3rem; font-weight: 800; letter-spacing: -.03em; line-height: 1; display: block; }
+.c-kpi--accent .c-kpi__n { color: #fff; }
+.c-kpi__l { color: var(--mute); font-size: .92rem; margin-top: .45rem; font-weight: 500; }
+.c-kpi--accent .c-kpi__l { color: rgba(255,255,255,.85); }
+
+/* ---------- Graphe ---------- */
+.c-chart { position: relative; width: 100%; height: 260px; }
+
+/* ---------- Barres (pages, top items) ---------- */
+.c-bars { display: flex; flex-direction: column; gap: .9rem; }
+.c-bar { display: grid; grid-template-columns: 1fr auto; gap: .25rem .8rem; align-items: center; }
+.c-bar__lab {
+  font-size: 1.02rem; font-weight: 600; color: var(--ink);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.c-bar__path { font-size: .8rem; color: var(--mute); grid-column: 1 / 2; }
+.c-bar__n { font-size: 1.3rem; font-weight: 800; color: var(--accent-deep); white-space: nowrap; }
+.c-bar__track { grid-column: 1 / -1; height: 12px; border-radius: 6px; background: var(--accent-soft); overflow: hidden; }
+.c-bar__fill { height: 100%; border-radius: 6px; background: var(--accent); }
+
+/* ---------- Entonnoir (funnel carnet) ---------- */
+.c-funnel { display: flex; flex-direction: column; gap: .7rem; }
+.c-step { display: flex; align-items: center; gap: .9rem; }
+.c-step__bar {
+  height: 46px; border-radius: 12px; background: var(--accent);
+  display: flex; align-items: center; padding: 0 .9rem; min-width: 56px;
+  color: #fff; font-weight: 800; font-size: 1.4rem;
+}
+.c-step__bar--2 { opacity: .78; }
+.c-step__bar--3 { opacity: .56; }
+.c-step__lab { color: var(--ink-2); font-weight: 600; font-size: 1rem; }
+.c-step__pct { color: var(--mute); font-size: .9rem; }
+
+/* ---------- Liste de chips (top vigilances/objectifs) ---------- */
+.c-rank { display: flex; flex-direction: column; gap: .55rem; }
+.c-rank__row { display: flex; align-items: center; gap: .8rem; }
+.c-rank__pos {
+  flex: 0 0 auto; width: 30px; height: 30px; border-radius: 9px;
+  background: var(--accent-soft); color: var(--accent-deep);
+  display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: .95rem;
+}
+.c-rank__lab { flex: 1; font-weight: 600; font-size: 1.05rem; }
+.c-rank__n { color: var(--mute); font-weight: 700; }
+
+/* ---------- Grandes tuiles (hub : les deux mondes) ---------- */
+.c-worlds { display: grid; grid-template-columns: 1fr; gap: 1.1rem; }
+.c-world {
+  display: block; text-decoration: none; color: inherit;
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 1.5rem 1.4rem; position: relative; overflow: hidden;
+  border-top: 6px solid var(--w);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.c-world:active { transform: scale(.99); }
+.c-world__name { font-size: 1.7rem; font-weight: 800; letter-spacing: -.02em; margin: 0 0 .15rem; }
+.c-world__site { color: var(--mute); font-size: .95rem; margin: 0 0 1.1rem; }
+.c-world__snap { display: flex; gap: 1.6rem; }
+.c-world__snap b { display: block; font-size: 2rem; font-weight: 800; color: var(--w); line-height: 1; letter-spacing: -.02em; }
+.c-world__snap span { font-size: .85rem; color: var(--mute); }
+.c-world__go { position: absolute; right: 1.3rem; top: 1.5rem; font-size: 1.5rem; color: var(--w); }
+
+/* ---------- Boutons liens ---------- */
+.c-links { display: flex; flex-wrap: wrap; gap: .7rem; margin: .3rem 0 0; }
+.c-btn {
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .85rem 1.2rem; border-radius: 999px;
+  background: var(--accent); color: #fff; text-decoration: none;
+  font-weight: 700; font-size: 1rem; box-shadow: var(--shadow);
+}
+.c-btn--ghost { background: var(--card); color: var(--accent-deep); border: 1px solid var(--line); }
+
+/* ---------- Liste carnets ---------- */
+.c-list { display: flex; flex-direction: column; gap: .8rem; }
+.c-row {
+  display: flex; align-items: center; gap: .9rem; text-decoration: none; color: inherit;
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-sm);
+  padding: 1rem 1.1rem; box-shadow: var(--shadow);
+}
+.c-row__av {
+  flex: 0 0 auto; width: 46px; height: 46px; border-radius: 13px;
+  background: var(--accent-soft); color: var(--accent-deep);
+  display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.2rem;
+}
+.c-row__main { flex: 1; min-width: 0; }
+.c-row__name { font-weight: 700; font-size: 1.1rem; }
+.c-row__meta { color: var(--mute); font-size: .9rem; }
+.c-row__n { text-align: right; }
+.c-row__n b { font-size: 1.5rem; font-weight: 800; color: var(--accent-deep); display: block; line-height: 1; }
+.c-row__n span { font-size: .78rem; color: var(--mute); }
+
+/* ---------- États ---------- */
+.c-state { text-align: center; color: var(--mute); padding: 3rem 1rem; font-size: 1.05rem; }
+.c-empty { color: var(--mute); font-style: italic; }
+.c-badge {
+  font-size: .72rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  padding: .15rem .55rem; border-radius: 999px; vertical-align: middle;
+}
+.c-badge--depose { background: var(--dedans-soft); color: var(--dedans-deep); }
+.c-badge--pose { background: #fdf0d8; color: #9a6b08; }
+
+/* ---------- Détail carnet (jours) ---------- */
+.c-jour { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-sm); box-shadow: var(--shadow); padding: 1.2rem 1.2rem; margin: 0 0 1rem; }
+.c-jour__date { font-size: 1.25rem; font-weight: 800; margin: 0 0 .8rem; display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+.c-bloc { margin: .8rem 0; }
+.c-bloc__l { font-size: .78rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--accent-deep); margin: 0 0 .35rem; }
+.c-bloc__p { margin: 0; color: var(--ink-2); font-size: 1.05rem; line-height: 1.5; }
+.c-chips { display: flex; flex-wrap: wrap; gap: .4rem; }
+.c-chip { padding: .25rem .7rem; border-radius: 999px; background: var(--accent-soft); color: var(--accent-deep); font-weight: 600; font-size: .95rem; }
+.c-obj { margin: .5rem 0; padding-left: .2rem; }
+.c-obj__theme { font-size: .68rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--mute); }
+.c-obj__lib { font-size: 1.08rem; font-weight: 600; }
+.c-st { font-size: .78rem; font-weight: 700; padding: .1rem .55rem; border-radius: 999px; margin-left: .35rem; }
+.c-st--tenu { background: #e2f1d9; color: #3f6a26; }
+.c-st--parfois { background: #fdf0d2; color: #8a6a12; }
+.c-st--oublie { background: #ecebe7; color: #6a6256; }
+.c-st--repris { background: #e2ecf8; color: #355d86; }
+
+/* ---------- Plus grand sur écran large ---------- */
+@media (min-width: 620px) {
+  body { font-size: 19px; }
+  .c-kpis { grid-template-columns: repeat(4, 1fr); }
+  .c-worlds { grid-template-columns: 1fr 1fr; }
+  .c-hero__title { font-size: 2.6rem; }
+}

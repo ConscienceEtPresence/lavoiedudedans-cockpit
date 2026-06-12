@@ -2,33 +2,69 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="robots" content="noindex,nofollow" />
-  <title>Cockpit · La voie du dedans</title>
-
+  <meta name="theme-color" content="#f4f5f7" />
+  <title>Cockpit</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Amiri:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/cockpit.css?v=2" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/cockpit2.css?v=1" />
 </head>
 <body>
+  <div class="c-top">
+    <div class="c-top__in">
+      <div class="c-top__title"><span>Cockpit</span></div>
+    </div>
+  </div>
 
-  <main class="ck-login">
-    <div class="ck-login__box">
-      <div class="ck-login__ar" lang="ar" dir="rtl">المِصْبَاح</div>
-      <h1 class="ck-login__title">Cockpit</h1>
-      <p class="ck-login__sub">l'intendance de <em>La voie du dedans</em></p>
+  <main class="c-wrap">
+    <div class="c-hero">
+      <p class="c-hero__eyebrow" style="color:var(--mute)">Poste d'observation</p>
+      <h1 class="c-hero__title">Mes deux mondes</h1>
+      <p class="c-hero__sub">Le suivi d'usage de tes deux pages, séparément. Données anonymes — juste des compteurs.</p>
+    </div>
 
-      <a href="./carnets.html" class="ck-login__btn">
-        Entrer dans le cockpit
-      </a>
+    <div id="worlds" class="c-worlds">
+      <div class="c-state">Chargement…</div>
+    </div>
 
-      <p class="ck-login__note">
-        Le cockpit est ouvert. Le carnet du dedans ne demande plus de mot de passe ;
-        l'intendance n'en demande plus non plus.
-      </p>
+    <div class="c-links" style="margin-top:1.4rem">
+      <a class="c-btn c-btn--ghost" href="suggestions.html" style="--accent-deep:#41454d">Les retours des visiteurs →</a>
     </div>
   </main>
 
+  <script type="module">
+    import { SITES, loadAnalytics, loadCarnetAggregate, esc } from './assets/js/cockpit-data.js';
+
+    const tiles = [
+      { ...SITES.dedans, href: 'monde.html?site=dedans' },
+      { ...SITES.miroir, href: 'monde.html?site=miroir' },
+    ];
+
+    (async () => {
+      const el = document.getElementById('worlds');
+      const cards = await Promise.all(tiles.map(async (S) => {
+        let a = null, agg = null;
+        try { a = await loadAnalytics(S.id, 7); } catch (e) {}
+        try { agg = await loadCarnetAggregate(S.key); } catch (e) {}
+        const visAuj = a ? a.uToday : '—';
+        const vis7 = a ? a.u7 : '—';
+        const carnets = agg ? agg.total : '—';
+        return `
+          <a class="c-world" style="--w:${S.accent}" href="${S.href}">
+            <span class="c-world__go">→</span>
+            <h2 class="c-world__name">${esc(S.nom)}</h2>
+            <p class="c-world__site">${esc(S.site)}</p>
+            <div class="c-world__snap">
+              <div><b>${visAuj}</b><span>visiteurs aujourd'hui</span></div>
+              <div><b>${vis7}</b><span>sur 7 jours</span></div>
+              <div><b>${carnets}</b><span>carnets</span></div>
+            </div>
+          </a>`;
+      }));
+      el.innerHTML = cards.join('');
+    })();
+  </script>
 </body>
 </html>

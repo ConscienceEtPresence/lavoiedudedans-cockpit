@@ -2,298 +2,130 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="robots" content="noindex,nofollow" />
+  <meta name="theme-color" content="#f4f5f7" />
   <title>Carnet · Cockpit</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Amiri:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/cockpit.css?v=2" />
-  <style>
-    .ck-jour {
-      padding: 1.1rem 1.3rem;
-      background: #FFFDF8;
-      border: 1px solid var(--line, rgba(192,160,80,0.25));
-      border-left: 3px solid var(--gold, #c0a050);
-      border-radius: 10px;
-      margin: 1rem 0;
-    }
-    .ck-jour__date {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 1.2rem;
-      color: var(--ink-title, #2a1f08);
-      margin: 0 0 .6rem;
-    }
-    .ck-jour__bloc { margin: .55rem 0; }
-    .ck-jour__label {
-      display: block;
-      font-size: .74rem;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      color: #8a7028;
-      font-weight: 600;
-      margin-bottom: .2rem;
-    }
-    .ck-jour__corps {
-      margin: 0;
-      color: #2a1f08;
-      font-family: 'Source Serif 4', Georgia, serif;
-      font-size: .98rem;
-      line-height: 1.55;
-    }
-    .ck-jour__corps em { color: #6a5520; font-style: italic; }
-    .ck-jour__chips {
-      display: flex; flex-wrap: wrap; gap: .3rem;
-      margin: .25rem 0;
-    }
-    .ck-jour__chip {
-      display: inline-block;
-      padding: .15rem .55rem;
-      background: rgba(192,160,80,0.15);
-      border-radius: 999px;
-      font-size: .82rem;
-      color: #4a3a18;
-    }
-    .ck-profil {
-      padding: 1.2rem 1.4rem;
-      background: linear-gradient(170deg, #FFF8DC, #FFFDF4);
-      border: 1px solid var(--gold, #c0a050);
-      border-radius: 12px;
-      margin-bottom: 1.5rem;
-    }
-    .ck-profil__line { margin: .3rem 0; color: #4a3a18; font-size: .95rem; }
-    .ck-profil__line strong { color: #2a1f08; }
-    .ck-back {
-      display: inline-block;
-      margin-bottom: 1rem;
-      color: var(--gold-deep, #8a7028);
-      text-decoration: none;
-      font-size: .92rem;
-      border-bottom: 1px dotted var(--gold-deep, #8a7028);
-    }
-    /* Objectifs (nouveau modèle) */
-    .ck-obj { margin: .35rem 0; }
-    .ck-obj__theme {
-      font-family: 'Inter', sans-serif;
-      font-size: .58rem; letter-spacing: .12em; text-transform: uppercase;
-      color: #8a7028; margin-right: .4rem;
-    }
-    .ck-obj__lib { color: #2a1f08; font-family: 'Source Serif 4', Georgia, serif; }
-    .ck-statut {
-      display: inline-block;
-      font-family: 'Inter', sans-serif; font-size: .68rem;
-      padding: .08rem .5rem; border-radius: 999px; margin-left: .2rem;
-      vertical-align: middle;
-    }
-    .ck-statut--tenu    { background: rgba(120,160,90,.18);  color: #4a6a2a; }
-    .ck-statut--parfois { background: rgba(192,160,80,.20);  color: #8a7028; }
-    .ck-statut--oublie  { background: rgba(150,140,120,.18); color: #6a5e4a; }
-    .ck-statut--repris  { background: rgba(110,140,180,.18); color: #3a5a80; }
-    /* Badge état du jour */
-    .ck-badge {
-      font-family: 'Inter', sans-serif; font-size: .6rem;
-      letter-spacing: .1em; text-transform: uppercase;
-      padding: .12rem .5rem; border-radius: 999px; vertical-align: middle;
-    }
-    .ck-badge--depose { background: rgba(120,160,90,.18); color: #4a6a2a; }
-    .ck-badge--pose   { background: rgba(192,160,80,.18); color: #8a7028; }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/cockpit2.css?v=1" />
 </head>
-<body>
-  <header class="ck-head">
-    <div class="ck-head__inner">
-      <div class="ck-head__brand">Cockpit</div>
-      <nav class="ck-head__nav">
-        <a href="./carnets.html">Carnets ouverts</a>
-        <a href="./tableau-de-bord.html">Ancien</a>
-      </nav>
+<body class="world--dedans">
+  <div class="c-top">
+    <div class="c-top__in">
+      <a class="c-back" href="carnets.html?site=dedans" aria-label="Retour">←</a>
+      <div class="c-top__title"><span class="c-dot"></span><span>Carnet</span></div>
     </div>
-  </header>
+  </div>
 
-  <main class="ck-main">
-    <a href="./carnets.html" class="ck-back">← Tous les carnets</a>
-    <div id="carnet-mount">
-      <p style="text-align:center; color: var(--ink-mute, #8a7a55); font-style: italic; padding: 3rem;">Chargement…</p>
-    </div>
-  </main>
+  <main class="c-wrap" id="mount"><div class="c-state">Chargement…</div></main>
 
   <script type="module">
     import { db } from './assets/js/firebase-init.js';
     import { collection, getDocs, doc, getDoc }
       from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { esc, tsToMs } from './assets/js/cockpit-data.js';
 
-    function esc(s) {
-      return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    }
-    function tsToDate(ts) {
-      if (!ts) return null;
-      if (ts.toDate) return ts.toDate();
-      try { return new Date(ts); } catch { return null; }
-    }
+    const DATA = 'https://lavoiedudedans.fr/data/carnet/';
+    const id = new URLSearchParams(location.search).get('id') || '';
+    const mount = document.getElementById('mount');
+
     function dateLisible(s) {
       if (!s) return '';
       const [y, m, d] = s.split('-');
-      const dt = new Date(parseInt(y), parseInt(m)-1, parseInt(d));
-      return dt.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      return new Date(parseInt(y), parseInt(m)-1, parseInt(d))
+        .toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     }
 
-    const id = new URLSearchParams(location.search).get('id') || '';
-    const mount = document.getElementById('carnet-mount');
-
     (async () => {
-      if (!id) {
-        mount.innerHTML = '<p style="text-align:center;">Aucun carnet sélectionné.</p>';
-        return;
-      }
+      if (!id) { mount.innerHTML = '<div class="c-state">Aucun carnet sélectionné.</div>'; return; }
       try {
-        // 0) Données du carnet (libellés) — chargées depuis le site en ligne (CORS ouvert)
-        const DATA = 'https://lavoiedudedans.fr/data/carnet/';
         const [vigRes, objRes] = await Promise.all([
           fetch(DATA + 'vigilances.json').then(r => r.json()).catch(() => ({})),
-          fetch(DATA + 'objectifs.json').then(r => r.json()).catch(() => ({}))
+          fetch(DATA + 'objectifs.json').then(r => r.json()).catch(() => ({})),
         ]);
-        const vigById = {};
-        for (const v of (vigRes.vigilances || [])) vigById[v.id] = v;
-        const objById = {};
-        for (const o of (objRes.objectifs || [])) objById[o.id] = o;
-        const STATUT_LABEL = { tenu: 'tenu', parfois: 'parfois', oublie: 'oublié', repris: 'à reprendre' };
-        const labelVig = vid => vigById[vid]?.label || vid || '';
-        const labelObj = oid => objById[oid]?.matin?.libelle || oid || '';
-        const vigOfObj = oid => objById[oid]?.vigilance || '';
+        const vigById = {}; for (const v of (vigRes.vigilances || [])) vigById[v.id] = v;
+        const objById = {}; for (const o of (objRes.objectifs || [])) objById[o.id] = o;
+        const ST = { tenu: 'tenu', parfois: 'parfois', oublie: 'oublié', repris: 'à reprendre' };
+        const labVig = v => vigById[v]?.label || v || '';
+        const labObj = o => objById[o]?.matin?.libelle || o || '';
+        const vigOf = o => objById[o]?.vigilance || '';
 
-        // 1) Profil
         const profilSnap = await getDoc(doc(db, 'carnets', id, '_meta', 'profil'));
-        const profil = profilSnap.exists() ? profilSnap.data() : null;
-        const prenom = profil?.prenom || '';
-        const firstSeen = tsToDate(profil?.firstSeen);
-        const lastSeen = tsToDate(profil?.lastSeen);
+        const profil = profilSnap.exists() ? profilSnap.data() : {};
+        const prenom = profil.prenom || '';
+        const first = tsToMs(profil.firstSeen), last = tsToMs(profil.lastSeen);
 
-        // 2) Jours
         const joursSnap = await getDocs(collection(db, 'carnets', id, 'jours'));
-        const jours = [];
-        joursSnap.forEach(d => jours.push({ date: d.id, data: d.data() }));
+        const jours = []; joursSnap.forEach(d => jours.push({ date: d.id, data: d.data() }));
         jours.sort((a, b) => b.date.localeCompare(a.date));
+        document.title = (prenom || id) + ' · Cockpit';
 
-        document.title = `${prenom || id} · Cockpit`;
+        const bloc = (l, inner) => `<div class="c-bloc"><p class="c-bloc__l">${l}</p>${inner}</div>`;
+        const chips = arr => `<div class="c-chips">${arr.map(c => `<span class="c-chip">${esc(c)}</span>`).join('')}</div>`;
+        const para = v => `<p class="c-bloc__p">${esc(v)}</p>`;
 
-        const profilHTML = `
-          <div class="ck-profil">
-            <h1 style="margin:0 0 .5rem; font-family:'Cormorant Garamond',serif; font-size:1.8rem; color:#2a1f08;">
-              ${prenom ? esc(prenom) : '<em style="color:#8a7a55;">(anonyme)</em>'}
-            </h1>
-            <p class="ck-profil__line"><strong>Identifiant :</strong> <code style="font-family:'Courier New',monospace; background:rgba(192,160,80,0.1); padding:.1rem .4rem; border-radius:4px;">${esc(id)}</code></p>
-            <p class="ck-profil__line"><strong>Première visite :</strong> ${firstSeen ? firstSeen.toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' }) : '—'}</p>
-            <p class="ck-profil__line"><strong>Dernière visite :</strong> ${lastSeen ? lastSeen.toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' }) : '—'}</p>
-            <p class="ck-profil__line"><strong>Jours notés :</strong> ${jours.length}</p>
-          </div>`;
-
-        // 3) Rendu des jours
-
-        // --- Nouveau modèle (carnet d'adab refondé) ---
-        const renderJourNouveau = (matin, soir) => {
-          const blocs = [];
-          // Liste des objectifs : {id, vigilance} (multi) ou reconstruit depuis objectifsIds
-          const objs = (matin.objectifs && matin.objectifs.length)
-            ? matin.objectifs
-            : (matin.objectifsIds || []).map(oid => ({ id: oid, vigilance: vigOfObj(oid) || matin.vigilanceId }));
+        const renderNouveau = (m, s) => {
+          const objs = (m.objectifs && m.objectifs.length) ? m.objectifs
+            : (m.objectifsIds || []).map(o => ({ id: o, vigilance: vigOf(o) || m.vigilanceId }));
           const vigs = [...new Set(objs.map(o => o.vigilance).filter(Boolean))];
-          const bilans = soir.bilansObjectifs || {};
-
-          if (vigs.length) blocs.push(`
-            <div class="ck-jour__bloc">
-              <span class="ck-jour__label">Matin · Vigilance${vigs.length > 1 ? 's' : ''}</span>
-              <div class="ck-jour__chips">${vigs.map(v => `<span class="ck-jour__chip">${esc(labelVig(v))}</span>`).join('')}</div>
-            </div>`);
-          if (matin.ancrage) blocs.push(`
-            <div class="ck-jour__bloc">
-              <span class="ck-jour__label">Matin · Ce qui se joue</span>
-              <p class="ck-jour__corps"><em>« ${esc(matin.ancrage)} »</em></p>
-            </div>`);
-          if (objs.length) blocs.push(`
-            <div class="ck-jour__bloc">
-              <span class="ck-jour__label">Matin · Objectifs portés</span>
-              ${objs.map(o => {
-                const b = bilans[o.id];
-                const statut = b?.statut ? `<span class="ck-statut ck-statut--${esc(b.statut)}">${esc(STATUT_LABEL[b.statut] || b.statut)}</span>` : '';
-                const note = b?.note ? `<p class="ck-jour__corps" style="margin:.15rem 0 0; font-size:.9rem;">${esc(b.note)}</p>` : '';
-                return `<div class="ck-obj">
-                  <span class="ck-obj__theme">${esc(labelVig(o.vigilance))}</span>
-                  <span class="ck-obj__lib">${esc(labelObj(o.id))}</span> ${statut}${note}
-                </div>`;
-              }).join('')}
-            </div>`);
-          if (matin.personnel) {
-            const bp = soir.bilanPersonnel;
-            const st = bp?.statut ? ` <span class="ck-statut ck-statut--${esc(bp.statut)}">${esc(STATUT_LABEL[bp.statut] || bp.statut)}</span>` : '';
-            blocs.push(`
-            <div class="ck-jour__bloc">
-              <span class="ck-jour__label">Matin · Objectif personnel</span>
-              <p class="ck-jour__corps">${esc(matin.personnel)}${st}</p>
-              ${bp?.note ? `<p class="ck-jour__corps" style="font-size:.9rem; margin:.15rem 0 0;">${esc(bp.note)}</p>` : ''}
-            </div>`);
+          const bil = s.bilansObjectifs || {};
+          const out = [];
+          if (vigs.length) out.push(bloc(`Vigilance${vigs.length>1?'s':''}`, chips(vigs.map(labVig))));
+          if (m.ancrage) out.push(bloc('Ce qui se joue', para('« ' + m.ancrage + ' »')));
+          if (objs.length) out.push(bloc('Objectifs portés', objs.map(o => {
+            const b = bil[o.id];
+            const st = b?.statut ? `<span class="c-st c-st--${esc(b.statut)}">${esc(ST[b.statut]||b.statut)}</span>` : '';
+            const note = b?.note ? `<p class="c-bloc__p" style="font-size:.95rem; margin:.1rem 0 0;">${esc(b.note)}</p>` : '';
+            return `<div class="c-obj"><span class="c-obj__theme">${esc(labVig(o.vigilance))}</span><br><span class="c-obj__lib">${esc(labObj(o.id))}</span>${st}${note}</div>`;
+          }).join('')));
+          if (m.personnel) {
+            const bp = s.bilanPersonnel;
+            const st = bp?.statut ? `<span class="c-st c-st--${esc(bp.statut)}">${esc(ST[bp.statut]||bp.statut)}</span>` : '';
+            out.push(bloc('Objectif personnel', `<p class="c-bloc__p">${esc(m.personnel)}${st}</p>` + (bp?.note ? para(bp.note) : '')));
           }
-          if (soir.presente) blocs.push(`
-            <div class="ck-jour__bloc">
-              <span class="ck-jour__label">Soir · Ce qui s'est présenté</span>
-              <p class="ck-jour__corps">${esc(soir.presente)}</p>
-            </div>`);
-          if (soir.gratitudeNote) blocs.push(`
-            <div class="ck-jour__bloc">
-              <span class="ck-jour__label">Soir · Gratitude</span>
-              <p class="ck-jour__corps">${esc(soir.gratitudeNote)}</p>
-            </div>`);
-          if (soir.repriseTexte) blocs.push(`
-            <div class="ck-jour__bloc">
-              <span class="ck-jour__label">Soir · Pour demain</span>
-              <p class="ck-jour__corps">${esc(soir.repriseTexte)}</p>
-            </div>`);
-          return blocs;
+          if (s.presente) out.push(bloc("Ce qui s'est présenté", para(s.presente)));
+          if (s.gratitudeNote) out.push(bloc('Gratitude', para(s.gratitudeNote)));
+          if (s.repriseTexte) out.push(bloc('Pour demain', para(s.repriseTexte)));
+          return out;
         };
-
-        // --- Ancien modèle (avant refonte) — repli ---
-        const renderJourAncien = (matin, soir) => {
-          const blocs = [];
-          const chips = (label, arr) => { if (arr?.length) blocs.push(`<div class="ck-jour__bloc"><span class="ck-jour__label">${label}</span><div class="ck-jour__chips">${arr.map(c => `<span class="ck-jour__chip">${esc(c)}</span>`).join('')}</div></div>`); };
-          const txt = (label, v) => { if (v) blocs.push(`<div class="ck-jour__bloc"><span class="ck-jour__label">${label}</span><p class="ck-jour__corps">${esc(v)}</p></div>`); };
-          chips('Matin · Contextes', matin.contextes);
-          chips('Matin · Axes', matin.axes);
-          txt('Matin · Adab', matin.adab);
-          txt('Matin · Geste', matin.geste);
-          txt('Matin · Note', matin.note);
-          chips('Soir · Mouvements', soir.mouvements);
-          chips('Soir · Ce qui a poussé', soir.ceQuiAPousse);
-          txt('Soir · Gratitude', soir.gratitudeNote);
-          txt('Soir · Reprise demain', soir.repriseDemain?.texte);
-          return blocs;
+        const renderAncien = (m, s) => {
+          const out = [];
+          if (m.contextes?.length) out.push(bloc('Matin · Contextes', chips(m.contextes)));
+          if (m.axes?.length) out.push(bloc('Matin · Axes', chips(m.axes)));
+          if (m.adab) out.push(bloc('Matin · Adab', para(m.adab)));
+          if (m.geste) out.push(bloc('Matin · Geste', para(m.geste)));
+          if (m.note) out.push(bloc('Matin · Note', para(m.note)));
+          if (s.mouvements?.length) out.push(bloc('Soir · Mouvements', chips(s.mouvements)));
+          if (s.ceQuiAPousse?.length) out.push(bloc('Soir · Ce qui a poussé', chips(s.ceQuiAPousse)));
+          if (s.gratitudeNote) out.push(bloc('Soir · Gratitude', para(s.gratitudeNote)));
+          if (s.repriseDemain?.texte) out.push(bloc('Soir · Reprise', para(s.repriseDemain.texte)));
+          return out;
         };
 
         const renderJour = (j) => {
-          const d = j.data;
-          const matin = d.matin || {};
-          const soir = d.soir || {};
-          // Détecte le modèle : nouveau si vigilanceId / objectifs / objectifsIds présents
-          const estNouveau = !!(matin.vigilanceId || (matin.objectifs && matin.objectifs.length) || (matin.objectifsIds && matin.objectifsIds.length));
-          const blocs = estNouveau ? renderJourNouveau(matin, soir) : renderJourAncien(matin, soir);
-          const aPose = !!matin.poseLe;
-          const aDepose = !!soir.fermeLe;
-          const badge = aDepose
-            ? '<span class="ck-badge ck-badge--depose">déposé</span>'
-            : (aPose ? '<span class="ck-badge ck-badge--pose">posé</span>' : '');
-          return `
-            <div class="ck-jour">
-              <h3 class="ck-jour__date">${dateLisible(j.date)} ${badge}</h3>
-              ${blocs.length ? blocs.join('') : '<p style="color:#8a7a55; font-style:italic; margin:0;">Jour ouvert mais rien de noté.</p>'}
-            </div>`;
+          const m = j.data.matin || {}, s = j.data.soir || {};
+          const estNouveau = !!(m.vigilanceId || (m.objectifs && m.objectifs.length) || (m.objectifsIds && m.objectifsIds.length));
+          const blocs = estNouveau ? renderNouveau(m, s) : renderAncien(m, s);
+          const badge = s.fermeLe ? '<span class="c-badge c-badge--depose">déposé</span>'
+            : (m.poseLe ? '<span class="c-badge c-badge--pose">posé</span>' : '');
+          return `<div class="c-jour"><h3 class="c-jour__date">${dateLisible(j.date)} ${badge}</h3>
+            ${blocs.length ? blocs.join('') : '<p class="c-empty">Jour ouvert mais rien de noté.</p>'}</div>`;
         };
 
         mount.innerHTML = `
-          ${profilHTML}
-          <h2 style="font-family:'Cormorant Garamond',serif; font-size:1.4rem; color:#4a3a18; margin:1.5rem 0 .5rem;">Les jours notés</h2>
-          ${jours.length ? jours.map(renderJour).join('') : '<p style="color:#8a7a55; font-style:italic;">Aucun jour noté pour l\'instant.</p>'}
-        `;
+          <div class="c-hero">
+            <p class="c-hero__eyebrow">La voie du dedans</p>
+            <h1 class="c-hero__title">${prenom ? esc(prenom) : '<span style="color:#888e98">(anonyme)</span>'}</h1>
+            <p class="c-hero__sub">${jours.length} journée${jours.length>1?'s':''} ·
+              première visite ${first ? new Date(first).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}) : '—'} ·
+              dernière ${last ? new Date(last).toLocaleDateString('fr-FR',{day:'numeric',month:'long'}) : '—'}</p>
+          </div>
+          ${jours.length ? jours.map(renderJour).join('') : '<div class="c-card"><p class="c-empty">Aucune journée notée.</p></div>'}`;
       } catch (e) {
         console.error(e);
-        mount.innerHTML = `<p style="color:#c44; text-align:center;">Erreur : ${esc(e.message || e)}</p>`;
+        mount.innerHTML = `<div class="c-state">Erreur : ${esc(e.message || e)}</div>`;
       }
     })();
   </script>

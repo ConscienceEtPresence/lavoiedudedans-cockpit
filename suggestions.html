@@ -2,183 +2,89 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="robots" content="noindex,nofollow" />
-  <title>Suggestions · Cockpit</title>
+  <meta name="theme-color" content="#f4f5f7" />
+  <title>Retours · Cockpit</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Amiri:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/cockpit.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/cockpit2.css?v=1" />
   <style>
-    .ck-sug {
-      background: linear-gradient(170deg, #FFFDF8, var(--paper-deep));
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: var(--space-lg);
-      margin-bottom: var(--space-md);
-    }
-    .ck-sug.is-read { opacity: 0.7; }
-    .ck-sug__head {
-      display: flex; align-items: baseline; gap: 0.8rem; flex-wrap: wrap;
-      margin-bottom: var(--space-sm);
-    }
-    .ck-sug__from {
-      font-family: var(--font-display); font-weight: 500;
-      font-size: 1.05rem; color: var(--ink-title);
-    }
-    .ck-sug__when {
-      font-family: var(--font-display); font-style: italic;
-      font-size: 0.88rem; color: var(--ink-mute);
-    }
-    .ck-sug__statut {
-      font-family: var(--font-sans); font-size: 0.68rem;
-      letter-spacing: 0.1em; text-transform: uppercase;
-      padding: 0.2rem 0.6rem; border-radius: 999px;
-    }
-    .ck-sug__statut--neuve { background: rgba(192,160,80,0.18); color: var(--gold); }
-    .ck-sug__statut--lue { background: var(--paper); color: var(--ink-mute); }
-    .ck-sug__statut--enroute { background: rgba(46,125,122,0.12); color: #2E7D7A; }
-    .ck-sug__msg {
-      font-family: var(--font-display); font-size: 1.05rem;
-      line-height: 1.65; color: var(--ink-soft);
-      padding: var(--space-md);
-      background: rgba(192,160,80,0.04);
-      border-left: 3px solid var(--gold-soft);
-      border-radius: 6px;
-    }
-    .ck-sug__actions {
-      display: flex; gap: 0.6rem; flex-wrap: wrap;
-      margin-top: var(--space-md);
-    }
+    body { --accent:#5b6470; --accent-soft:#eceef1; --accent-deep:#3c434d; }
+    .c-sug__msg { font-size: 1.1rem; line-height: 1.55; color: var(--ink); margin: .6rem 0 0; }
+    .c-sug__act { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:1rem; }
+    .c-mini { padding:.55rem .9rem; border-radius:999px; border:1px solid var(--line); background:var(--card); color:var(--ink-2); font-weight:600; font-size:.9rem; cursor:pointer; }
+    .c-mini--danger { color:#b4453a; }
+    .is-read { opacity:.62; }
   </style>
 </head>
 <body>
-
-  <header class="ck-head">
-    <div class="ck-head__inner">
-      <div class="ck-head__brand">Cockpit · <em>La voie du dedans</em></div>
-      <nav class="ck-head__nav">
-        <a href="./tableau-de-bord.html">Tableau</a>
-        <a href="./demandes.html">Demandes</a>
-        <a href="./codes.html">Clés</a>
-        <a href="./suggestions.html" class="is-active">Suggestions</a>
-        <a href="./souffle.html">Souffle</a>
-        <a href="./creer-cle.html">Créer</a>
-        <a href="#" id="logout-link">Sortir</a>
-      </nav>
+  <div class="c-top">
+    <div class="c-top__in">
+      <a class="c-back" href="index.html" aria-label="Retour">←</a>
+      <div class="c-top__title"><span class="c-dot"></span><span>Les retours</span></div>
     </div>
-  </header>
+  </div>
 
-  <main class="ck-main">
-    <h1 class="ck-title">Suggestions reçues</h1>
-    <p class="ck-subtitle">les voix qui veulent vous aider à faire mieux</p>
-
-    <div id="sugs-mount">
-      <div style="text-align:center; padding: var(--space-xl); color: var(--ink-mute); font-style: italic;">Chargement…</div>
-    </div>
-  </main>
+  <main class="c-wrap" id="mount"><div class="c-state">Chargement…</div></main>
 
   <script type="module">
     import { db } from './assets/js/firebase-init.js';
-    import { requireAdmin, logout } from './assets/js/auth-guard.js';
     import { collection, getDocs, doc, updateDoc, deleteDoc }
       from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { esc } from './assets/js/cockpit-data.js';
 
-    document.getElementById('logout-link').addEventListener('click', (e) => {
-      e.preventDefault(); logout();
-    });
-
-    const mount = document.getElementById('sugs-mount');
-
-    function esc(s) {
-      return String(s == null ? '' : s)
-        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    }
+    const mount = document.getElementById('mount');
     function relatif(ts) {
       if (!ts) return '';
       try {
         const d = ts.toDate ? ts.toDate() : new Date(ts);
-        const ms = Date.now() - d.getTime();
-        const h = Math.floor(ms / (1000*60*60));
-        const j = Math.floor(ms / (1000*60*60*24));
-        if (h < 1) return "à l'instant";
-        if (h < 24) return `il y a ${h}h`;
-        if (j === 1) return 'hier';
-        if (j < 30) return `il y a ${j} jours`;
+        const j = Math.floor((Date.now() - d.getTime()) / 86400000);
+        const h = Math.floor((Date.now() - d.getTime()) / 3600000);
+        if (h < 1) return "à l'instant"; if (h < 24) return `il y a ${h} h`;
+        if (j === 1) return 'hier'; if (j < 30) return `il y a ${j} j`;
         return d.toLocaleDateString('fr-FR', { day:'numeric', month:'long' });
       } catch { return ''; }
     }
+    const STAT = { neuve:'nouveau', lue:'lu', enroute:'en route' };
 
     async function load() {
       const snap = await getDocs(collection(db, 'suggestions'));
-      const arr = [];
-      snap.forEach(d => arr.push({ id: d.id, ...d.data() }));
-      arr.sort((a, b) => {
-        const ta = a.creeLe?.toMillis?.() || 0;
-        const tb = b.creeLe?.toMillis?.() || 0;
-        return tb - ta;
-      });
+      const arr = []; snap.forEach(d => arr.push({ id: d.id, ...d.data() }));
+      arr.sort((a, b) => (b.creeLe?.toMillis?.()||0) - (a.creeLe?.toMillis?.()||0));
       return arr;
     }
-
     function render(sugs) {
-      if (!sugs.length) {
-        mount.innerHTML = `<div style="text-align:center; padding:var(--space-xl); color:var(--ink-mute); font-style:italic;">Aucune suggestion encore. Les voix viendront.</div>`;
-        return;
-      }
-      mount.innerHTML = sugs.map(s => {
-        const statut = s.statut || 'neuve';
-        const statutLabel = {
-          neuve: 'nouveau',
-          lue: 'lu',
-          enroute: 'en route'
-        }[statut] || statut;
-        const cls = `ck-sug__statut--${statut}`;
-        const readCls = statut !== 'neuve' ? 'is-read' : '';
-        return `
-          <article class="ck-sug ${readCls}" data-id="${esc(s.id)}">
-            <div class="ck-sug__head">
-              <span class="ck-sug__from">${esc(s.prenom || 'Anonyme')}</span>
-              <span class="ck-sug__when">${relatif(s.creeLe)}</span>
-              <span class="ck-sug__statut ${cls}">${statutLabel}</span>
+      mount.innerHTML = `
+        <div class="c-hero"><p class="c-hero__eyebrow">Les deux sites</p><h1 class="c-hero__title">Les retours</h1>
+          <p class="c-hero__sub">${sugs.length} message${sugs.length>1?'s':''} reçu${sugs.length>1?'s':''}</p></div>
+        ${sugs.length ? sugs.map(s => {
+          const st = s.statut || 'neuve';
+          return `<div class="c-card ${st!=='neuve'?'is-read':''}" data-id="${esc(s.id)}">
+            <div style="display:flex;align-items:baseline;gap:.7rem;flex-wrap:wrap">
+              <strong style="font-size:1.15rem">${esc(s.prenom || 'Anonyme')}</strong>
+              <span style="color:var(--mute);font-size:.9rem">${relatif(s.creeLe)}</span>
+              <span class="c-badge" style="background:var(--accent-soft);color:var(--accent-deep)">${STAT[st]||st}</span>
             </div>
-            <div class="ck-sug__msg">${esc(s.message || '')}</div>
-            <div class="ck-sug__actions">
-              ${statut !== 'lue' ? `<button class="ck-btn ck-btn--small" data-act="lue" data-id="${esc(s.id)}">Marquer lue</button>` : ''}
-              ${statut !== 'enroute' ? `<button class="ck-btn ck-btn--small" data-act="enroute" data-id="${esc(s.id)}">À mettre en route</button>` : ''}
-              <button class="ck-btn ck-btn--small ck-btn--ghost" data-act="suppr" data-id="${esc(s.id)}">Supprimer</button>
+            <p class="c-sug__msg">${esc(s.message || '')}</p>
+            <div class="c-sug__act">
+              ${st!=='lue'?`<button class="c-mini" data-act="lue" data-id="${esc(s.id)}">Marquer lu</button>`:''}
+              ${st!=='enroute'?`<button class="c-mini" data-act="enroute" data-id="${esc(s.id)}">À mettre en route</button>`:''}
+              <button class="c-mini c-mini--danger" data-act="suppr" data-id="${esc(s.id)}">Supprimer</button>
             </div>
-          </article>
-        `;
-      }).join('');
-      mount.querySelectorAll('[data-act]').forEach(b => {
-        b.addEventListener('click', () => action(b.dataset.act, b.dataset.id));
-      });
+          </div>`;
+        }).join('') : '<div class="c-card"><p class="c-empty">Aucun retour pour l\'instant.</p></div>'}`;
+      mount.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', () => action(b.dataset.act, b.dataset.id)));
     }
-
     async function action(act, id) {
       try {
-        if (act === 'suppr') {
-          if (!confirm('Supprimer définitivement cette suggestion ?')) return;
-          await deleteDoc(doc(db, 'suggestions', id));
-        } else {
-          await updateDoc(doc(db, 'suggestions', id), { statut: act });
-        }
-        const sugs = await load();
-        render(sugs);
-      } catch (e) {
-        console.error(e);
-        alert('Une difficulté. Réessayez.');
-      }
+        if (act === 'suppr') { if (!confirm('Supprimer définitivement ?')) return; await deleteDoc(doc(db,'suggestions',id)); }
+        else await updateDoc(doc(db,'suggestions',id), { statut: act });
+        render(await load());
+      } catch (e) { console.error(e); alert('Une difficulté. Réessayez.'); }
     }
-
-    requireAdmin(async () => {
-      try { render(await load()); }
-      catch (e) {
-        console.error(e);
-        mount.innerHTML = `<div style="text-align:center; padding:var(--space-xl); color:var(--ink-mute);">Une difficulté à charger.</div>`;
-      }
-    });
+    (async () => { try { render(await load()); } catch (e) { mount.innerHTML = `<div class="c-state">Erreur de chargement.</div>`; } })();
   </script>
 </body>
 </html>
