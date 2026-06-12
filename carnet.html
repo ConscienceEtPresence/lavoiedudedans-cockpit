@@ -66,7 +66,11 @@
         const chips = arr => `<div class="c-chips">${arr.map(c => `<span class="c-chip">${esc(c)}</span>`).join('')}</div>`;
         const para = v => `<p class="c-bloc__p">${esc(v)}</p>`;
 
-        const renderNouveau = (m, s) => {
+        const RST = { vecu: 'habité', traverse: 'traversé', manque: 'manqué' };
+        const vigsDeR = r => (Array.isArray(r.vigilanceIds) && r.vigilanceIds.length)
+          ? r.vigilanceIds : (r.vigilanceId ? [r.vigilanceId] : []);
+
+        const renderNouveau = (m, s, recueils) => {
           const objs = (m.objectifs && m.objectifs.length) ? m.objectifs
             : (m.objectifsIds || []).map(o => ({ id: o, vigilance: vigOf(o) || m.vigilanceId }));
           const vigs = [...new Set(objs.map(o => o.vigilance).filter(Boolean))];
@@ -84,6 +88,19 @@
             const bp = s.bilanPersonnel;
             const st = bp?.statut ? `<span class="c-st c-st--${esc(bp.statut)}">${esc(ST[bp.statut]||bp.statut)}</span>` : '';
             out.push(bloc('Objectif personnel', `<p class="c-bloc__p">${esc(m.personnel)}${st}</p>` + (bp?.note ? para(bp.note) : '')));
+          }
+          if (recueils && recueils.length) {
+            const rs = recueils.slice().sort((a, b) => (a.le || 0) - (b.le || 0));
+            out.push(bloc('Pendant la journée · recueils', rs.map(r => {
+              const themes = vigsDeR(r).map(labVig).filter(Boolean);
+              const precis = (r.objectifsIds || []).map(labObj).filter(Boolean);
+              const stR = r.statut ? `<span class="c-st c-st--${esc(r.statut)}">${esc(RST[r.statut] || r.statut)}${r.statut === 'vecu' ? ' ✦' : ''}</span>` : '';
+              const themeHTML = themes.length ? `<span class="c-obj__theme">${esc(themes.join(' · '))}</span><br>` : '';
+              const lib = r.texte ? esc(r.texte) : (precis.length ? esc(precis.join(' · ')) : '<em style="color:#888e98">(noté sans texte)</em>');
+              const pre = (r.texte && precis.length) ? `<p class="c-bloc__p" style="font-size:.92rem;margin:.15rem 0 0;">↳ ${esc(precis.join(' · '))}</p>` : '';
+              const appr = r.apprentissage ? `<p class="c-bloc__p" style="font-size:.92rem;margin:.15rem 0 0;"><em>« ${esc(r.apprentissage)} »</em></p>` : '';
+              return `<div class="c-obj">${themeHTML}<span class="c-obj__lib">${lib}</span>${stR}${pre}${appr}</div>`;
+            }).join('')));
           }
           if (s.presente) out.push(bloc("Ce qui s'est présenté", para(s.presente)));
           if (s.gratitudeNote) out.push(bloc('Gratitude', para(s.gratitudeNote)));
@@ -107,7 +124,7 @@
         const renderJour = (j) => {
           const m = j.data.matin || {}, s = j.data.soir || {};
           const estNouveau = !!(m.vigilanceId || (m.objectifs && m.objectifs.length) || (m.objectifsIds && m.objectifsIds.length));
-          const blocs = estNouveau ? renderNouveau(m, s) : renderAncien(m, s);
+          const blocs = estNouveau ? renderNouveau(m, s, j.data.recueils || []) : renderAncien(m, s);
           const badge = s.fermeLe ? '<span class="c-badge c-badge--depose">déposé</span>'
             : (m.poseLe ? '<span class="c-badge c-badge--pose">posé</span>' : '');
           return `<div class="c-jour"><h3 class="c-jour__date">${dateLisible(j.date)} ${badge}</h3>
