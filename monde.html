@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/cockpit2.css?v=1" />
+  <link rel="stylesheet" href="assets/css/cockpit2.css?v=2" />
 </head>
 <body>
   <div class="c-top">
@@ -51,6 +51,28 @@
           ${kpi(mo ? mo.uniques : '—', 'personnes distinctes · ce mois')}
           ${kpi(mo ? mo.pageviews : a.pv30, mo ? 'pages vues · ce mois' : 'pages vues · 30 j')}
         </div>` : `<div class="c-card"><p class="c-empty">Les statistiques de visite ne sont pas encore disponibles.</p></div>`;
+
+      const maxWeek = Math.max(1, ...(a?.weekRows || []).map(d => Math.max(d.uniques, d.pageviews)));
+      const weekHTML = a?.weekRows?.length ? `
+        <div class="c-card">
+          <h2 class="c-card__h"><span class="c-dot"></span>Semaine en détail</h2>
+          <div class="c-week">
+            ${a.weekRows.map(d => `
+              <div class="c-day">
+                <div class="c-day__top">
+                  <span class="c-day__name">${esc(d.shortLabel)}</span>
+                  <span class="c-day__date">${esc(d.label.replace('.', ''))}</span>
+                </div>
+                <div class="c-day__nums">
+                  <b>${d.uniques}</b><span>personne${d.uniques>1?'s':''}</span>
+                  <b>${d.pageviews}</b><span>vue${d.pageviews>1?'s':''}</span>
+                </div>
+                <span class="c-day__track"><span class="c-day__fill" style="width:${Math.round(d.uniques/maxWeek*100)}%"></span></span>
+              </div>`).join('')}
+          </div>
+          <p style="color:var(--mute);font-size:.85rem;margin:1rem 0 0">“Personnes” = visiteurs uniques anonymes du jour, estimés par navigateur. “Vues” = pages ouvertes.</p>
+          <div class="c-links" style="margin-top:1rem"><a class="c-btn c-btn--ghost" href="journal.html?site=${key}&days=14">Voir jour par jour →</a></div>
+        </div>` : '';
 
       // Pages les plus visitées (ce mois) : vues + personnes distinctes
       const va = mo?.viewsArr || (a?.topPages || []);
@@ -140,6 +162,7 @@
         </div>
         ${kpisHTML}
         <div style="height:1.1rem"></div>
+        ${weekHTML}
         ${chartHTML}
         ${pagesHTML}
         ${sectionHTML}

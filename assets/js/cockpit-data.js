@@ -71,33 +71,51 @@ export function rawPath(pathKey) {
   return '/' + String(pathKey).replace(/_/g, '/');
 }
 
+function readCounters(day, flatPrefix, nestedKey) {
+  const out = {};
+  for (const [field, val] of Object.entries(day || {})) {
+    if (typeof val === 'number' && field.startsWith(flatPrefix)) {
+      out[field.slice(flatPrefix.length)] = (out[field.slice(flatPrefix.length)] || 0) + val;
+    }
+  }
+  if (day?.[nestedKey] && typeof day[nestedKey] === 'object') {
+    for (const [key, val] of Object.entries(day[nestedKey])) {
+      if (typeof val === 'number') out[key] = (out[key] || 0) + val;
+    }
+  }
+  return out;
+}
+
 /* ---------- Analytics d'un site ---------- */
 export async function loadAnalytics(siteId, days = 30) {
   const snap = await getDocs(collection(db, 'analytics', siteId, 'jours'));
   const byDate = {}; snap.forEach(s => byDate[s.id] = s.data());
-  const labels = [], uniques = [], pageviews = [];
+  const labels = [], uniques = [], pageviews = [], dayRows = [];
   let pv30 = 0, u30 = 0, pv7 = 0, u7 = 0, pvToday = 0, uToday = 0;
   const pages = {};
   const today = dKey(new Date());
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date(); d.setDate(d.getDate() - i); const k = dKey(d);
     const day = byDate[k] || {}; const pv = day.pageviews || 0, u = day.uniques || 0;
+    const viewsByPage = readCounters(day, 'pages.', 'pages');
+    const uniquesByPage = readCounters(day, 'upages.', 'upages');
+    const pageRows = Object.entries(viewsByPage).sort((a, b) => b[1] - a[1])
+      .map(([page, views]) => ({ page, views, uniques: uniquesByPage[page] ?? null }));
     labels.push(`${d.getDate()}/${d.getMonth()+1}`); uniques.push(u); pageviews.push(pv);
+    dayRows.push({
+      date: k,
+      label: d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'short' }),
+      shortLabel: d.toLocaleDateString('fr-FR', { weekday: 'short' }),
+      uniques: u,
+      pageviews: pv,
+      pages: pageRows,
+    });
     pv30 += pv; u30 += u; if (i < 7) { pv7 += pv; u7 += u; } if (k === today) { pvToday = pv; uToday = u; }
-    // Les compteurs par page sont stockés en clés plates « pages.<clé> »
-    // (effet de setDoc merge avec des chemins pointés). On lit les deux formes.
-    for (const [field, val] of Object.entries(day)) {
-      if (typeof val === 'number' && field.startsWith('pages.')) {
-        const pk = field.slice(6);
-        pages[pk] = (pages[pk] || 0) + val;
-      }
-    }
-    if (day.pages && typeof day.pages === 'object') {
-      for (const [p, c] of Object.entries(day.pages)) pages[p] = (pages[p] || 0) + c;
-    }
+    for (const [p, c] of Object.entries(viewsByPage)) pages[p] = (pages[p] || 0) + c;
   }
   const allPages = Object.entries(pages).sort((a, b) => b[1] - a[1]);
   return { labels, uniques, pageviews, pv30, u30, pv7, u7, pvToday, uToday,
+           dayRows, weekRows: dayRows.slice(-7),
            topPages: allPages.slice(0, 8), allPages,
            totalPv: allPages.reduce((n, [, c]) => n + c, 0) };
 }
