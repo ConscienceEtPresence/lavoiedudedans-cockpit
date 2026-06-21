@@ -135,6 +135,35 @@ body {
 .c-day__track { grid-column: 1 / -1; height: 8px; border-radius: 999px; background: var(--accent-soft); overflow: hidden; }
 .c-day__fill { display: block; height: 100%; border-radius: 999px; background: var(--accent); }
 
+/* ---------- Comparaison et alertes ---------- */
+.c-compare { display: grid; grid-template-columns: 1fr; gap: .8rem; }
+.c-compare__item {
+  padding: 1rem; border: 1px solid var(--line); border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+.c-compare__label {
+  display: block; color: var(--mute); font-size: .82rem;
+  font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+}
+.c-compare__item b {
+  display: block; margin: .35rem 0 .15rem;
+  color: var(--ink); font-size: 2rem; line-height: 1; letter-spacing: -.03em;
+}
+.c-compare__sub { display: block; color: var(--mute); font-size: .9rem; }
+.c-trend {
+  display: inline-flex; margin-top: .65rem; padding: .22rem .65rem;
+  border-radius: 999px; font-size: .82rem; font-weight: 800;
+}
+.c-trend.is-up { background: #e4f4ef; color: #156b53; }
+.c-trend.is-down { background: #f9e7e7; color: #9b3636; }
+.c-trend.is-flat { background: #eceef2; color: #5e6470; }
+.c-alerts { display: flex; flex-direction: column; gap: .55rem; }
+.c-alert {
+  padding: .8rem .9rem; border-radius: var(--radius-sm);
+  background: var(--accent-soft); color: var(--accent-deep);
+  font-weight: 650; font-size: .96rem;
+}
+
 /* ---------- Barres (pages, top items) ---------- */
 .c-bars { display: flex; flex-direction: column; gap: .9rem; }
 .c-bar { display: grid; grid-template-columns: 1fr auto; gap: .25rem .8rem; align-items: center; }
@@ -259,6 +288,7 @@ body {
 @media (min-width: 620px) {
   body { font-size: 19px; }
   .c-kpis { grid-template-columns: repeat(4, 1fr); }
+  .c-compare { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .c-week { grid-template-columns: repeat(7, minmax(0, 1fr)); }
   .c-day { grid-template-columns: 1fr; align-content: start; min-height: 142px; }
   .c-day__nums { grid-template-columns: 1fr; gap: .15rem; text-align: left; }

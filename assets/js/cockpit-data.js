@@ -99,6 +99,10 @@ export async function loadAnalytics(siteId, days = 30) {
     const day = byDate[k] || {}; const pv = day.pageviews || 0, u = day.uniques || 0;
     const viewsByPage = readCounters(day, 'pages.', 'pages');
     const uniquesByPage = readCounters(day, 'upages.', 'upages');
+    const periods = readCounters(day, 'periods.', 'periods');
+    const uniquePeriods = readCounters(day, 'uperiods.', 'uperiods');
+    const hours = readCounters(day, 'hours.', 'hours');
+    const sources = readCounters(day, 'sources.', 'sources');
     const pageRows = Object.entries(viewsByPage).sort((a, b) => b[1] - a[1])
       .map(([page, views]) => ({ page, views, uniques: uniquesByPage[page] ?? null }));
     labels.push(`${d.getDate()}/${d.getMonth()+1}`); uniques.push(u); pageviews.push(pv);
@@ -109,6 +113,10 @@ export async function loadAnalytics(siteId, days = 30) {
       uniques: u,
       pageviews: pv,
       pages: pageRows,
+      periods,
+      uniquePeriods,
+      hours,
+      sources,
     });
     pv30 += pv; u30 += u; if (i < 7) { pv7 += pv; u7 += u; } if (k === today) { pvToday = pv; uToday = u; }
     for (const [p, c] of Object.entries(viewsByPage)) pages[p] = (pages[p] || 0) + c;
