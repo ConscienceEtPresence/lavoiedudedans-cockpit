@@ -27,7 +27,8 @@
   <script type="module">
     import { SITES, loadAnalytics, loadMonthly, loadCarnetAggregate, aggBySection, labelPage, rawPath, esc } from './assets/js/cockpit-data.js';
 
-    const key = (new URLSearchParams(location.search).get('site') === 'miroir') ? 'miroir' : 'dedans';
+    const p = new URLSearchParams(location.search).get('site');
+    const key = SITES[p] ? p : 'dedans';
     const S = SITES[key];
     document.body.classList.add('world--' + key);
     document.getElementById('top-nom').textContent = S.nom;

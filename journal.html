@@ -25,7 +25,7 @@
     import { SITES, loadAnalytics, labelPage, rawPath, esc } from './assets/js/cockpit-data.js';
 
     const params = new URLSearchParams(location.search);
-    const key = params.get('site') === 'miroir' ? 'miroir' : 'dedans';
+    const key = SITES[params.get('site')] ? params.get('site') : 'dedans';
     const S = SITES[key];
     const wantedDays = parseInt(params.get('days') || '14', 10);
     const days = [7, 14, 30].includes(wantedDays) ? wantedDays : 14;

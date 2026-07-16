@@ -19,8 +19,9 @@
   /* Accents par monde */
   --dedans: #1f8f6f;   --dedans-soft: #e4f4ef;   --dedans-deep: #156b53;
   --miroir: #6d5ab8;   --miroir-soft: #ece8f8;   --miroir-deep: #4f3f93;
+  --jaspers: #B8860B;  --jaspers-soft: #f7efdb;  --jaspers-deep: #8a6408;
 
-  /* L'accent courant (défini par .world--dedans / .world--miroir sur <body>) */
+  /* L'accent courant (défini par .world--dedans / .world--miroir / .world--jaspers sur <body>) */
   --accent: var(--dedans);
   --accent-soft: var(--dedans-soft);
   --accent-deep: var(--dedans-deep);
@@ -29,6 +30,11 @@
   --accent: var(--miroir);
   --accent-soft: var(--miroir-soft);
   --accent-deep: var(--miroir-deep);
+}
+.world--jaspers {
+  --accent: var(--jaspers);
+  --accent-soft: var(--jaspers-soft);
+  --accent-deep: var(--jaspers-deep);
 }
 
 * { box-sizing: border-box; }

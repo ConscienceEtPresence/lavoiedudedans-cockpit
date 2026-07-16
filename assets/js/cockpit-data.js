@@ -15,7 +15,14 @@ export const SITES = {
     key: 'miroir', id: 'lemiroirinterieur', nom: 'Le miroir intérieur',
     site: 'lemiroirinterieur.fr', col: 'carnets-type', accent: '#6d5ab8',
   },
+  jaspers: {
+    key: 'jaspers', id: 'karl-jaspers', nom: 'Karl Jaspers',
+    site: 'conscienceetpresence.github.io/karl-jaspers', col: null, accent: '#B8860B',
+  },
 };
+
+/* col: null = ce site n'a pas de carnet. Les fonctions carnet renvoient null,
+   et les blocs correspondants du cockpit ne s'affichent pas. */
 
 const DATA_DEDANS = 'https://lavoiedudedans.fr/data/carnet/';
 
@@ -53,6 +60,18 @@ const PAGE_LABELS = {
   'pages_contes_index': 'Contes',
   'pages_voyage_index': 'Le Voyage du Seuil',
   'pages_voyage': 'Le Voyage du Seuil',
+
+  /* ---- Karl Jaspers ---- */
+  'chemin': 'Entrer dans Jaspers',
+  'situer': 'Où situer Jaspers',
+  'lhomme': 'L’homme, sa vie',
+  'glossaire': 'Glossaire',
+  'citations': 'Citations',
+  'lire': 'Lire Jaspers',
+  'quotidien': 'Jaspers au quotidien',
+  'dossiers': 'Les dossiers',
+  'dossiers_origines': 'Dossier · Origines',
+  'dossiers_englobant': 'Dossier · L’Englobant',
 };
 export function labelPage(pathKey) {
   if (!pathKey) return '—';
@@ -158,6 +177,11 @@ const SECTION_LABELS = {
   metaphysique: 'Métaphysique', poesie: 'Poésie', contes: 'Contes', voyage: 'Le Voyage',
   'mot-du-jour': 'Mot du jour', decouvrir: 'Découvrir', cheminer: 'Cheminer',
   rencontrer: 'Rencontrer', en: 'Pages anglaises', auteurs: 'Auteurs', auteur: 'Auteurs',
+  /* Karl Jaspers */
+  concepts: 'Les concepts', notions: 'Les notions', dossiers: 'Les dossiers',
+  glossaire: 'Glossaire', citations: 'Citations', lire: 'Lire Jaspers',
+  chemin: 'Entrer dans Jaspers', situer: 'Où le situer', lhomme: 'L’homme, sa vie',
+  quotidien: 'Au quotidien',
 };
 export function sectionOf(pathKey) {
   if (pathKey === 'home' || pathKey === 'index') return 'accueil';
@@ -195,6 +219,7 @@ async function dedansData() {
 /* ---------- Liste des carnets (profils) ---------- */
 export async function loadCarnetsList(siteKey) {
   const S = SITES[siteKey];
+  if (!S || !S.col) return [];
   const snap = await getDocs(collection(db, S.col));
   const out = [];
   for (const d of snap.docs) {
@@ -212,6 +237,7 @@ export async function loadCarnetsList(siteKey) {
 /* ---------- Agrégat carnet : entonnoir + top vigilances/objectifs ---------- */
 export async function loadCarnetAggregate(siteKey) {
   const S = SITES[siteKey];
+  if (!S || !S.col) return null;
   const snap = await getDocs(collection(db, S.col));
   const now = Date.now(), weekAgo = now - 7 * 86400000;
   let total = 0, actifs7 = 0, posers = 0, deposers = 0, joursTotal = 0;

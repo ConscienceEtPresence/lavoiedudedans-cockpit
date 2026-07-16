@@ -21,8 +21,8 @@
   <main class="c-wrap">
     <div class="c-hero">
       <p class="c-hero__eyebrow" style="color:var(--mute)">Poste d'observation</p>
-      <h1 class="c-hero__title">Mes deux mondes</h1>
-      <p class="c-hero__sub">Le suivi d'usage de tes deux pages, séparément. Données anonymes — juste des compteurs.</p>
+      <h1 class="c-hero__title">Mes mondes</h1>
+      <p class="c-hero__sub">Le suivi d'usage de tes sites, séparément. Données anonymes — juste des compteurs.</p>
     </div>
 
     <div id="worlds" class="c-worlds">
@@ -40,6 +40,7 @@
     const tiles = [
       { ...SITES.dedans, href: 'monde.html?site=dedans' },
       { ...SITES.miroir, href: 'monde.html?site=miroir' },
+      { ...SITES.jaspers, href: 'monde.html?site=jaspers' },
     ];
 
     (async () => {
@@ -50,7 +51,10 @@
         try { agg = await loadCarnetAggregate(S.key); } catch (e) {}
         const visAuj = a ? a.uToday : '—';
         const vis7 = a ? a.u7 : '—';
-        const carnets = agg ? agg.total : '—';
+        // Les sites sans carnet (col: null) montrent les pages vues à la place.
+        const troisieme = S.col
+          ? { n: agg ? agg.total : '—', l: 'carnets' }
+          : { n: a ? a.pv7 : '—', l: 'pages vues · 7 j' };
         return `
           <a class="c-world" style="--w:${S.accent}" href="${S.href}">
             <span class="c-world__go">→</span>
@@ -59,7 +63,7 @@
             <div class="c-world__snap">
               <div><b>${visAuj}</b><span>visiteurs aujourd'hui</span></div>
               <div><b>${vis7}</b><span>sur 7 jours</span></div>
-              <div><b>${carnets}</b><span>carnets</span></div>
+              <div><b>${troisieme.n}</b><span>${troisieme.l}</span></div>
             </div>
           </a>`;
       }));
