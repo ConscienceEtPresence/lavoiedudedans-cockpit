@@ -204,6 +204,16 @@
           ${mapBars(langs, langLabels, '')}
         </div>` : '';
 
+      // Régions (estimées par fuseau horaire — jamais l'IP)
+      const zones = sumMap(a?.dayRows || [], 'zones');
+      const zoneLabels = Object.fromEntries(Object.keys(zones).map(k => [k, k.replace(/_/g, ' · ')]));
+      const zonesHTML = Object.values(zones).some(Boolean) ? `
+        <div class="c-card">
+          <h2 class="c-card__h"><span class="c-dot"></span>Régions des visiteurs · 30 jours</h2>
+          ${mapBars(zones, zoneLabels, '')}
+          <p style="color:var(--mute);font-size:.85rem;margin:1rem 0 0">Estimation d'après le fuseau horaire du navigateur (anonyme) : ni adresse IP, ni géolocalisation. Un décompte par personne et par jour.</p>
+        </div>` : '';
+
       // Lecture attentive
       const engagedTotal = sum(a?.dayRows || [], 'engaged');
       const deepTotal = sum(a?.dayRows || [], 'deep');
@@ -341,6 +351,7 @@
         ${visitorsHTML}
         ${devicesHTML}
         ${langsHTML}
+        ${zonesHTML}
         ${engageHTML}
         ${chartHTML}
         ${sectionHTML}

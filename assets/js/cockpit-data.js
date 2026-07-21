@@ -170,6 +170,7 @@ export async function loadAnalytics(siteId, days = 30) {
     const devices = readCounters(day, 'devices.', 'devices');
     const langs = readCounters(day, 'langs.', 'langs');
     const visitors = readCounters(day, 'visitors.', 'visitors');
+    const zones = readCounters(day, 'zones.', 'zones');
     const deepPages = readCounters(day, 'deeppages.', 'deeppages');
     const pageRows = Object.entries(viewsByPage).sort((a, b) => b[1] - a[1])
       .map(([page, views]) => ({ page, views, uniques: uniquesByPage[page] ?? null }));
@@ -188,6 +189,7 @@ export async function loadAnalytics(siteId, days = 30) {
       devices,
       langs,
       visitors,
+      zones,
       deepPages,
       engaged: day.engaged || 0,
       deep: day.deep || 0,
