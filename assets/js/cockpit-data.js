@@ -167,6 +167,10 @@ export async function loadAnalytics(siteId, days = 30) {
     const uniquePeriods = readCounters(day, 'uperiods.', 'uperiods');
     const hours = readCounters(day, 'hours.', 'hours');
     const sources = readCounters(day, 'sources.', 'sources');
+    const devices = readCounters(day, 'devices.', 'devices');
+    const langs = readCounters(day, 'langs.', 'langs');
+    const visitors = readCounters(day, 'visitors.', 'visitors');
+    const deepPages = readCounters(day, 'deeppages.', 'deeppages');
     const pageRows = Object.entries(viewsByPage).sort((a, b) => b[1] - a[1])
       .map(([page, views]) => ({ page, views, uniques: uniquesByPage[page] ?? null }));
     labels.push(`${d.getDate()}/${d.getMonth()+1}`); uniques.push(u); pageviews.push(pv);
@@ -181,6 +185,12 @@ export async function loadAnalytics(siteId, days = 30) {
       uniquePeriods,
       hours,
       sources,
+      devices,
+      langs,
+      visitors,
+      deepPages,
+      engaged: day.engaged || 0,
+      deep: day.deep || 0,
     });
     pv30 += pv; u30 += u; if (i < 7) { pv7 += pv; u7 += u; } if (k === today) { pvToday = pv; uToday = u; }
     for (const [p, c] of Object.entries(viewsByPage)) pages[p] = (pages[p] || 0) + c;

@@ -10,12 +10,21 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="assets/css/cockpit2.css?v=2" />
+  <style>
+    .c-refresh { margin-left:auto; font-size:1.15rem; line-height:1; cursor:pointer; }
+    .c-refresh:active { transform:rotate(90deg); transition:transform .2s; }
+    .c-hours { display:flex; align-items:flex-end; gap:3px; height:120px; padding-top:.5rem; }
+    .c-hour { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; }
+    .c-hour__bar { width:100%; max-width:15px; border-radius:3px 3px 0 0; min-height:0; }
+    .c-hour__lab { font-size:.66rem; color:var(--mute); margin-top:.3rem; font-style:normal; height:1em; }
+  </style>
 </head>
 <body>
   <div class="c-top">
     <div class="c-top__in">
       <a class="c-back" href="index.html" aria-label="Retour">←</a>
       <div class="c-top__title"><span class="c-dot"></span><span id="top-nom">…</span></div>
+      <button type="button" class="c-back c-refresh" onclick="location.reload()" aria-label="Actualiser" title="Actualiser">⟳</button>
     </div>
   </div>
 
@@ -149,6 +158,74 @@
           <p style="color:var(--mute);font-size:.85rem;margin:1rem 0 0">Comptage anonyme : une source par visiteur unique et par jour, classée sans conserver l'URL complète.</p>
         </div>` : '';
 
+      // Heures de la journée (30 j)
+      const hoursMap = sumMap(a?.dayRows || [], 'hours');
+      const maxHour = Math.max(1, ...Object.values(hoursMap));
+      const hoursHTML = Object.values(hoursMap).some(Boolean) ? `
+        <div class="c-card">
+          <h2 class="c-card__h"><span class="c-dot"></span>Heures de la journée · 30 jours</h2>
+          <div class="c-hours">
+            ${Array.from({ length: 24 }, (_, h) => {
+              const n = hoursMap[String(h).padStart(2, '0')] || 0;
+              return `<div class="c-hour" title="${h} h : ${n} vue${n>1?'s':''}">
+                <span class="c-hour__bar" style="height:${n ? Math.max(6, Math.round(n/maxHour*100)) : 0}%;background:${S.accent}"></span>
+                <em class="c-hour__lab">${h % 6 === 0 ? h + 'h' : ''}</em>
+              </div>`;
+            }).join('')}
+          </div>
+          <p style="color:var(--mute);font-size:.85rem;margin:1rem 0 0">Répartition des pages vues sur les 24 heures.</p>
+        </div>` : '';
+
+      // Nouveaux vs. habitués
+      const visitorLabels = { new: 'Nouveaux visiteurs', back: 'Déjà venus' };
+      const visitors = sumMap(a?.dayRows || [], 'visitors');
+      const visitorsHTML = Object.values(visitors).some(Boolean) ? `
+        <div class="c-card">
+          <h2 class="c-card__h"><span class="c-dot"></span>Nouveaux vs. habitués · 30 jours</h2>
+          ${mapBars(visitors, visitorLabels, '')}
+          <p style="color:var(--mute);font-size:.85rem;margin:1rem 0 0">« Déjà venus » = navigateur ayant déjà visité le site auparavant. Un décompte par personne et par jour.</p>
+        </div>` : '';
+
+      // Appareils
+      const deviceLabels = { ordinateur: 'Ordinateur', mobile: 'Mobile', tablette: 'Tablette' };
+      const devices = sumMap(a?.dayRows || [], 'devices');
+      const devicesHTML = Object.values(devices).some(Boolean) ? `
+        <div class="c-card">
+          <h2 class="c-card__h"><span class="c-dot"></span>Appareils · 30 jours</h2>
+          ${mapBars(devices, deviceLabels, '')}
+        </div>` : '';
+
+      // Langue lue
+      const langLabels = { fr: 'Français', en: 'English' };
+      const langs = sumMap(a?.dayRows || [], 'langs');
+      const langsHTML = Object.values(langs).some(Boolean) ? `
+        <div class="c-card">
+          <h2 class="c-card__h"><span class="c-dot"></span>Langue lue · 30 jours</h2>
+          ${mapBars(langs, langLabels, '')}
+        </div>` : '';
+
+      // Lecture attentive
+      const engagedTotal = sum(a?.dayRows || [], 'engaged');
+      const deepTotal = sum(a?.dayRows || [], 'deep');
+      const deepPagesMap = sumMap(a?.dayRows || [], 'deepPages');
+      const topDeep = Object.entries(deepPagesMap).filter(([, n]) => n > 0).sort((x, y) => y[1] - x[1]).slice(0, 5);
+      const engageHTML = (engagedTotal || deepTotal) ? `
+        <div class="c-card">
+          <h2 class="c-card__h"><span class="c-dot"></span>Lecture attentive · 30 jours</h2>
+          <div class="c-kpis">
+            ${kpi(engagedTotal, 'visites de plus de 20 s')}
+            ${kpi(deepTotal, 'pages lues jusqu’au bas')}
+          </div>
+          ${topDeep.length ? `<div style="margin-top:1rem"><div style="color:var(--mute);font-size:.85rem;margin-bottom:.5rem">Pages lues jusqu’au bout&nbsp;:</div>
+            <div class="c-bars">${(() => { const m = topDeep[0][1] || 1; return topDeep.map(([p, n]) => `
+              <div class="c-bar">
+                <span class="c-bar__lab" title="${esc(rawPath(p))}">${esc(labelPage(p, S.id))}</span>
+                <span class="c-bar__n">${n}×</span>
+                <span class="c-bar__track"><span class="c-bar__fill" style="width:${Math.round(n/m*100)}%"></span></span>
+              </div>`).join(''); })()}</div></div>` : ''}
+          <p style="color:var(--mute);font-size:.85rem;margin:1rem 0 0">Signaux anonymes : temps passé et défilement, sans rien enregistrer du contenu lu.</p>
+        </div>` : '';
+
       // Pages les plus visitées (ce mois) : vues + personnes distinctes
       const va = mo?.viewsArr || (a?.topPages || []);
       const top = va.slice(0, 8);
@@ -259,7 +336,12 @@
         ${alertsHTML}
         ${weekHTML}
         ${momentsHTML}
+        ${hoursHTML}
         ${sourcesHTML}
+        ${visitorsHTML}
+        ${devicesHTML}
+        ${langsHTML}
+        ${engageHTML}
         ${chartHTML}
         ${sectionHTML}
         ${pagesHTML}
