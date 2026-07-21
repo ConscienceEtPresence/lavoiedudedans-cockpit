@@ -19,6 +19,10 @@ export const SITES = {
     key: 'jaspers', id: 'karl-jaspers', nom: 'Karl Jaspers',
     site: 'conscienceetpresence.github.io/karl-jaspers', col: null, accent: '#B8860B',
   },
+  essence: {
+    key: 'essence', id: 'lessenceretrouvee', nom: "L'essence retrouvée",
+    site: 'conscienceetpresence.github.io/lessenceretrouvee', col: null, accent: '#c99a3a',
+  },
 };
 
 /* col: null = ce site n'a pas de carnet. Les fonctions carnet renvoient null,
@@ -73,12 +77,53 @@ const PAGE_LABELS = {
   'dossiers_origines': 'Dossier · Origines',
   'dossiers_englobant': 'Dossier · L’Englobant',
 };
-export function labelPage(pathKey) {
+/* ---- Labels propres à un site (évite les collisions de noms de pages entre sites) ---- */
+const SITE_LABELS = {
+  'lessenceretrouvee': {
+    home: 'Accueil',
+    lhomme: 'L’homme',
+    'etre-ou-lon-est': 'Être où l’on est',
+    'le-juge-interieur': 'Le juge intérieur',
+    'les-trous': 'Les trous',
+    lessence: 'La question de l’essence',
+    'les-visages-de-lessence': 'Les visages de l’essence',
+    'la-perle': 'La Perle',
+    'le-point': 'Le Point',
+    'l-immensite': 'L’immensité',
+    pratiquer: 'Pratiquer',
+    'enneagramme-essence': 'L’ennéagramme de l’essence',
+    'le-chemin-de-lamour': 'Le chemin de l’amour',
+    glossaire: 'Glossaire bilingue',
+    ouvrages: 'La bibliothèque',
+    'lire-almaas': 'Lire Almaas',
+    sommaire: 'Sommaire',
+    'la-carte': 'La carte',
+    'schemas-oeuvre': 'Les schémas de l’œuvre',
+    'douze-notions': '12 notions clés',
+    'l-intelligence': 'L’intelligence',
+    'parcours-decouverte': 'Parcours découverte',
+    'lexiques-ouvrages': 'Lexiques par ouvrage',
+    situer: 'Situer Almaas',
+    lapproche: 'L’approche Diamant',
+    'approfondir-almaas': 'Approfondir Almaas',
+    chemin: 'Le chemin (porte)',
+    causeries: 'Les causeries',
+    'causeries-premiere-serie': 'Causeries · 1re série',
+    'causeries-deuxieme-serie': 'Causeries · 2e série',
+    'causeries-troisieme-serie': 'Causeries · 3e série',
+    'causeries-quatrieme-serie': 'Causeries · 4e série',
+    'causeries-cinquieme-serie': 'Causeries · 5e série',
+  },
+};
+export function labelPage(pathKey, siteId) {
   if (!pathKey) return '—';
-  if (PAGE_LABELS[pathKey]) return PAGE_LABELS[pathKey];
+  const site = (siteId && SITE_LABELS[siteId]) ? SITE_LABELS[siteId] : null;
+  const lookup = k => (site && site[k]) || PAGE_LABELS[k];
+  const hit = lookup(pathKey);
+  if (hit) return hit;
   let en = '';
   let k = pathKey;
-  if (k.startsWith('en_')) { en = ' · EN'; k = k.slice(3); if (PAGE_LABELS[k]) return PAGE_LABELS[k] + en; }
+  if (k.startsWith('en_')) { en = ' · EN'; k = k.slice(3); const h = lookup(k); if (h) return h + en; }
   // fallback : nettoie le chemin
   const parts = k.replace(/^pages_/, '').split('_').filter(Boolean);
   if (!parts.length) return 'Accueil' + en;

@@ -43,7 +43,7 @@
         ? ` <span style="font-weight:600;font-size:.8rem;color:var(--mute)">· ${row.uniques} pers.</span>`
         : '';
       return `<div class="c-bar">
-        <span class="c-bar__lab" title="${esc(rawPath(row.page))}">${esc(labelPage(row.page))}</span>
+        <span class="c-bar__lab" title="${esc(rawPath(row.page))}">${esc(labelPage(row.page, S.id))}</span>
         <span class="c-bar__n">${row.views}${unique}</span>
         <span class="c-bar__path">${esc(rawPath(row.page))}</span>
         <span class="c-bar__track"><span class="c-bar__fill" style="width:${Math.round(row.views / max * 100)}%"></span></span>

@@ -159,7 +159,7 @@
           ${top.length ? `<div class="c-bars">${top.map(([p, n]) => {
             const u = mo?.pageUniques?.[p];
             return `<div class="c-bar">
-              <span class="c-bar__lab" title="${esc(rawPath(p))}">${esc(labelPage(p))}</span>
+              <span class="c-bar__lab" title="${esc(rawPath(p))}">${esc(labelPage(p, S.id))}</span>
               <span class="c-bar__n">${n}${u != null ? ` <span style="font-weight:600;font-size:.8rem;color:var(--mute)">· ${u} pers.</span>` : ''}</span>
               <span class="c-bar__path">${esc(rawPath(p))}</span>
               <span class="c-bar__track"><span class="c-bar__fill" style="width:${Math.round(n/maxP*100)}%"></span></span>

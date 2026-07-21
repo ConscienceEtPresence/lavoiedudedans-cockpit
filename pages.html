@@ -56,7 +56,7 @@
             ${arr.map(([p, n]) => {
               const u = uniq ? uniq[p] : null;
               return `<div class="c-bar">
-                <span class="c-bar__lab" title="${esc(rawPath(p))}">${esc(labelPage(p))}</span>
+                <span class="c-bar__lab" title="${esc(rawPath(p))}">${esc(labelPage(p, S.id))}</span>
                 <span class="c-bar__n">${n}${u != null ? ` <span style="font-weight:600;font-size:.8rem;color:var(--mute)">· ${u} pers.</span>` : ''}</span>
                 <span class="c-bar__path">${esc(rawPath(p))} · ${Math.round(n/total*100)} %</span>
                 <span class="c-bar__track"><span class="c-bar__fill" style="width:${Math.round(n/max*100)}%"></span></span>
